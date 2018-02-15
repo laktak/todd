@@ -25,7 +25,7 @@ from collections import OrderedDict
 from docopt import docopt
 
 import todotxt_machine
-from todotxt_machine.todo import Todos
+from todotxt_machine.todos import Todos
 from todotxt_machine.urwid_ui import UrwidUI
 from todotxt_machine.colorscheme import ColorScheme
 from todotxt_machine.keys import KeyBindings
@@ -157,10 +157,11 @@ def main():
 
     try:
         with open(todotxt_file_path, "r") as todotxt_file:
-            todos = Todos(todotxt_file.readlines(), todotxt_file_path, donetxt_file_path)
+            todos_raw = todotxt_file.readlines()
     except:
         exit_with_error("ERROR: unable to open {0}\n\nEither specify one as an argument on the command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments['--config']))
-        todos = Todos([], todotxt_file_path, donetxt_file_path)
+
+    todos = Todos(todos_raw, todotxt_file_path, donetxt_file_path)
 
     show_toolbar = get_boolean_config_option(cfg, 'settings', 'show-toolbar')
     show_filter_panel = get_boolean_config_option(cfg, 'settings', 'show-filter-panel')

@@ -7,32 +7,59 @@ from datetime import date
 
 class Todo:
     """Single Todo item"""
-    _priority_regex = re.compile(r'\(([A-Z])\) ')
 
-    def __init__(self, item, index,
-                 colored="", priority="", contexts=[], projects=[],
-                 creation_date="", due_date="", completed_date=""):
-        self.raw = item.strip()
+    _context_regex = re.compile(r'(?:^|\s+)(@\S+)')
+    _project_regex = re.compile(r'(?:^|\s+)(\+\S+)')
+    _creation_date_regex = re.compile(r'^'
+                                      r'(?:x \d\d\d\d-\d\d-\d\d )?'
+                                      r'(?:\(\w\) )?'
+                                      r'(\d\d\d\d-\d\d-\d\d)\s*')
+    _due_date_regex = re.compile(r'\s*due:(\d\d\d\d-\d\d-\d\d)\s*')
+    _priority_regex = re.compile(r'\(([A-Z])\) ')
+    _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
+
+    def __init__(self, item, index):
+        self.update(item)
         self.raw_index = index
-        self.creation_date = creation_date
-        self.priority = priority
-        self.contexts = contexts
-        self.projects = projects
-        self.due_date = due_date
-        self.completed_date = completed_date
-        self.colored = self.highlight()
-        # self.colored_length = TerminalOperations.length_ignoring_escapes(self.colored)
 
     def update(self, item):
         self.raw = item.strip()
-        self.priority = Todos.priority(item)
-        self.contexts = Todos.contexts(item)
-        self.projects = Todos.projects(item)
-        self.creation_date = Todos.creation_date(item)
-        self.due_date = Todos.due_date(item)
-        self.completed_date = Todos.completed_date(item)
+        self.priority = Todo.scan_priority(item)
+        self.contexts = Todo.scan_contexts(item)
+        self.projects = Todo.scan_projects(item)
+        self.creation_date = Todo.scan_creation_date(item)
+        self.due_date = Todo.scan_due_date(item)
+        self.completed_date = Todo.scan_completed_date(item)
         self.colored = self.highlight()
         # self.colored_length = TerminalOperations.length_ignoring_escapes(self.colored)
+
+    @staticmethod
+    def scan_contexts(item):
+        return sorted(Todo._context_regex.findall(item))
+
+    @staticmethod
+    def scan_projects(item):
+        return sorted(Todo._project_regex.findall(item))
+
+    @staticmethod
+    def scan_creation_date(item):
+        match = Todo._creation_date_regex.search(item)
+        return match.group(1) if match else ""
+
+    @staticmethod
+    def scan_due_date(item):
+        match = Todo._due_date_regex.search(item)
+        return match.group(1) if match else ""
+
+    @staticmethod
+    def scan_priority(item):
+        match = Todo._priority_regex.match(item)
+        return match.group(1) if match else ""
+
+    @staticmethod
+    def scan_completed_date(item):
+        match = Todo._completed_regex.match(item)
+        return match.group(1) if match else ""
 
     def __repr__(self):
         return repr({
@@ -117,7 +144,7 @@ class Todo:
         self.update(self.raw)
 
     def incomplete(self):
-        self.raw = re.sub(Todos._completed_regex, "", self.raw)
+        self.raw = re.sub(Todo._completed_regex, "", self.raw)
         self.completed_date = ""
         self.update(self.raw)
 
@@ -125,238 +152,3 @@ class Todo:
         if self.creation_date == "":
             p = "({0}) ".format(self.priority) if self.priority != "" else ""
             self.update("{0}{1} {2}".format(p, date.today(), self.raw.replace(p, "")))
-
-
-class Todos:
-    """Todo items"""
-    _context_regex = re.compile(r'(?:^|\s+)(@\S+)')
-    _project_regex = re.compile(r'(?:^|\s+)(\+\S+)')
-    _creation_date_regex = re.compile(r'^'
-                                      r'(?:x \d\d\d\d-\d\d-\d\d )?'
-                                      r'(?:\(\w\) )?'
-                                      r'(\d\d\d\d-\d\d-\d\d)\s*')
-    _due_date_regex = re.compile(r'\s*due:(\d\d\d\d-\d\d-\d\d)\s*')
-    _priority_regex = re.compile(r'\(([A-Z])\) ')
-    _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
-
-    def __init__(self, todo_items, file_path, archive_path):
-        self.file_path = file_path
-        self.archive_path = archive_path
-        self.update(todo_items)
-
-    def reload_from_file(self):
-        with open(self.file_path, "r") as todotxt_file:
-            self.update(todotxt_file.readlines())
-
-    def save(self):
-        with open(self.file_path, "w") as todotxt_file:
-            for t in self.todo_items:
-                todotxt_file.write(t.raw + '\n')
-
-    def archive_done(self):
-        if self.archive_path is not None:
-            with open(self.archive_path, "a") as donetxt_file:
-                done = self.done_items()
-                for t in done:
-                    donetxt_file.write(t.raw + '\n')
-                    self.todo_items.remove(t)
-
-            self.save()
-            return True
-
-        return False
-
-    def update(self, todo_items):
-        self.parse_raw_entries(todo_items)
-
-    def append(self, item, add_creation_date=True):
-        self.insert(len(self.todo_items), item, add_creation_date)
-        return len(self.todo_items) - 1
-
-    def insert(self, index, item, add_creation_date=True):
-        self.todo_items.insert(index, self.create_todo(item, index))
-        self.update_raw_indices()
-        newtodo = self.todo_items[index]
-        if add_creation_date and newtodo.creation_date == "":
-            newtodo.add_creation_date()
-        return index
-
-    def delete(self, index):
-        del self.todo_items[index]
-        self.update_raw_indices()
-
-    def __iter__(self):
-        self.index = -1
-        return self
-
-    def __next__(self):
-        self.index = self.index + 1
-        if self.index == len(self.todo_items):
-            raise StopIteration
-        return self.todo_items[self.index]
-
-    def next(self):
-        self.index = self.index + 1
-        if self.index == len(self.todo_items):
-            raise StopIteration
-        return self.todo_items[self.index]
-
-    def __len__(self):
-        return len(self.todo_items)
-
-    def pending_items(self):
-        return [t for t in self.todo_items if not t.is_complete()]
-
-    def done_items(self):
-        return [t for t in self.todo_items if t.is_complete()]
-
-    def pending_items_count(self):
-        return len(self.pending_items())
-
-    def done_items_count(self):
-        return len(self.done_items())
-
-    def __getitem__(self, index):
-        return self.todo_items[index]
-
-    def __repr__(self):
-        return repr([i for i in self.todo_items])
-
-    def create_todo(self, todo, index):
-        return Todo(todo, index,
-                    contexts=Todos.contexts(todo),
-                    projects=Todos.projects(todo),
-                    priority=Todos.priority(todo),
-                    creation_date=Todos.creation_date(todo),
-                    due_date=Todos.due_date(todo),
-                    completed_date=Todos.completed_date(todo))
-
-    def parse_raw_entries(self, raw_items):
-        self.todo_items = [
-            self.create_todo(todo, index)
-            for index, todo in enumerate(raw_items) if todo.strip() != ""]
-
-    def update_raw_indices(self):
-        for index, todo in enumerate(self.todo_items):
-            todo.raw_index = index
-
-    @staticmethod
-    def contexts(item):
-        return sorted(Todos._context_regex.findall(item))
-
-    @staticmethod
-    def projects(item):
-        return sorted(Todos._project_regex.findall(item))
-
-    @staticmethod
-    def creation_date(item):
-        match = Todos._creation_date_regex.search(item)
-        return match.group(1) if match else ""
-
-    @staticmethod
-    def due_date(item):
-        match = Todos._due_date_regex.search(item)
-        return match.group(1) if match else ""
-
-    @staticmethod
-    def priority(item):
-        match = Todos._priority_regex.match(item)
-        return match.group(1) if match else ""
-
-    @staticmethod
-    def completed_date(item):
-        match = Todos._completed_regex.match(item)
-        return match.group(1) if match else ""
-
-    def all_contexts(self):
-        # Nested Loop
-        # all_contexts = []
-        # for item in self.raw_items:
-        #   for found_context in self.contexts(item):
-        #     if found_context not in all_contexts:
-        #       all_contexts.append(found_context)
-        # return all_contexts
-
-        # List comprehension
-        # return sorted(set( [found_context for item in self.raw_items for found_context in self.contexts(item)] ))
-
-        # Join all items and use one regex.findall
-        # return sorted(set( Todos._context_regex.findall(" ".join(self.raw_items))))
-
-        return sorted(set([context for todo in self.todo_items for context in todo.contexts]))
-
-    def all_projects(self):
-        # List comprehension
-        # return sorted(set( [project for item in self.raw_items for project in self.projects(item)] ))
-
-        # Join all items and use one regex.findall
-        # return sorted(set( Todos._project_regex.findall(" ".join(self.raw_items))))
-
-        return sorted(set([project for todo in self.todo_items for project in todo.projects]))
-
-    def sorted(self, reversed_sort=False):
-        self.todo_items.sort(key=lambda todo: todo.raw, reverse=reversed_sort)
-
-    def sorted_reverse(self):
-        self.sorted(reversed_sort=True)
-
-    def sorted_raw(self):
-        self.todo_items.sort(key=lambda todo: todo.raw_index)
-
-    def swap(self, first, second):
-        """
-        Swap items indexed by *first* and *second*.
-
-        Out-of-bounds situations are handled by wrapping.
-        """
-        if second < first:
-            second, first = first, second
-
-        n_items = len(self.todo_items)
-
-        if first < 0:
-            first += n_items
-
-        if second >= n_items:
-            second = n_items - second
-
-        self.todo_items[first], self.todo_items[second] = self.todo_items[second], self.todo_items[first]
-
-    def filter_context(self, context):
-        return [item for item in self.todo_items if context in item.contexts]
-
-    def filter_project(self, project):
-        return [item for item in self.todo_items if project in item.projects]
-
-    def filter_context_and_project(self, context, project):
-        return [item for item in self.todo_items if project in item.projects and context in item.contexts]
-
-    def filter_contexts_and_projects(self, contexts, projects):
-        return [item for item in self.todo_items if set(projects) & set(item.projects) or set(contexts) & set(item.contexts)]
-
-    def search(self, search_string):
-        search_string = re.escape(search_string)
-        # print(search_string)
-        ss = []
-        substrings = search_string.split("\\")
-        for index, substring in enumerate(substrings):
-            s = ".*?".join(substring)
-            # s.replace(" .*?", " ")
-            if 0 < index < len(substrings) - 1:
-                s += ".*?"
-            ss.append(s)
-        # print(repr(ss))
-        search_string_regex = '^.*('
-        search_string_regex += "\\".join(ss)
-        search_string_regex += ').*'
-        # print(search_string_regex)
-
-        r = re.compile(search_string_regex, re.IGNORECASE)
-        results = []
-        for t in self.todo_items:
-            match = r.search(t.raw)
-            if match:
-                t.search_matches = match.groups()
-                results.append(t)
-        return results
-
