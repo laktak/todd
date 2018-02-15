@@ -3,6 +3,7 @@
 
 import urwid
 import collections
+from todotxt_machine.todo import Todo
 
 # Modified from http://wiki.goffi.org/wiki/Urwid-satext/en
 
@@ -525,10 +526,16 @@ class UrwidUI:
 
         # Editing
         elif self.key_bindings.is_binded_to(input, 'toggle-complete'):
-            if focus.todo.is_complete():
-                focus.todo.incomplete()
+            t = focus.todo
+            if t.is_complete():
+                t.incomplete()
             else:
-                focus.todo.complete()
+                rec = t.complete()
+                if rec:
+                    new_index = self.todos.append(t.raw, add_creation_date=False)
+                    self.listbox.body.append(TodoWidget(self.todos[new_index], self.key_bindings, self.colorscheme, self, editing=False, wrapping=self.wrapping[0], border=self.border[0]))
+                    t.incomplete()
+                    t.set_due(rec)
             focus.update_todo()
             self.update_header()
 

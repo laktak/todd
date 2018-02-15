@@ -2,7 +2,6 @@
 # coding=utf-8
 import re
 import random
-from datetime import date
 from todotxt_machine.todo import Todo
 
 

@@ -2,7 +2,7 @@
 # coding=utf-8
 import re
 import random
-from datetime import date
+import datetime
 
 
 class Todo:
@@ -15,6 +15,8 @@ class Todo:
                                       r'(?:\(\w\) )?'
                                       r'(\d\d\d\d-\d\d-\d\d)\s*')
     _due_date_regex = re.compile(r'\s*due:(\d\d\d\d-\d\d-\d\d)\s*')
+    _rec_int_regex = re.compile(r'\s*rec:(\+?\d+[dwmy])\s*')
+    _rec_int_parts_regex = re.compile(r'(\+)?(\d+)([dwmy])')
     _priority_regex = re.compile(r'\(([A-Z])\) ')
     _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
 
@@ -29,6 +31,7 @@ class Todo:
         self.projects = Todo.scan_projects(item)
         self.creation_date = Todo.scan_creation_date(item)
         self.due_date = Todo.scan_due_date(item)
+        self.rec_int = Todo.scan_rec_int(item)
         self.completed_date = Todo.scan_completed_date(item)
         self.colored = self.highlight()
         # self.colored_length = TerminalOperations.length_ignoring_escapes(self.colored)
@@ -52,6 +55,11 @@ class Todo:
         return match.group(1) if match else ""
 
     @staticmethod
+    def scan_rec_int(item):
+        match = Todo._rec_int_regex.search(item)
+        return match.group(1) if match else ""
+
+    @staticmethod
     def scan_priority(item):
         match = Todo._priority_regex.match(item)
         return match.group(1) if match else ""
@@ -71,10 +79,11 @@ class Todo:
             "projects": self.projects,
             "creation_date": self.creation_date,
             "due_date": self.due_date,
-            "completed_date": self.completed_date
+            "rec_int": self.rec_int,
+            "completed_date": self.completed_date,
         })
 
-    def highlight(self, line="", show_due_date=True, show_contexts=True, show_projects=True):
+    def highlight(self, line="", show_due_date=True, show_contexts=True, show_projects=True, show_rec_int=True):
         colored = self.raw if line == "" else line
         color_list = [colored]
 
@@ -84,6 +93,8 @@ class Todo:
             words_to_be_highlighted = self.contexts + self.projects
             if self.due_date:
                 words_to_be_highlighted.append("due:" + self.due_date)
+            if self.rec_int:
+                words_to_be_highlighted.append("rec:" + self.rec_int)
             if self.creation_date:
                 words_to_be_highlighted.append(self.creation_date)
 
@@ -96,6 +107,8 @@ class Todo:
                         color_list[index] = ('project', w) if show_projects else ''
                     elif w == "due:" + self.due_date:
                         color_list[index] = ('due_date', w) if show_due_date else ''
+                    elif w == "rec:" + self.rec_int:
+                        color_list[index] = ('rec_int', w) if show_rec_int else ''
                     elif w == self.creation_date:
                         color_list[index] = ('creation_date', w)
 
@@ -138,17 +151,31 @@ class Todo:
             return True
 
     def complete(self):
-        today = date.today()
+        today = datetime.date.today()
         self.raw = "x {0} ".format(today) + self.raw
         self.completed_date = "{0}".format(today)
         self.update(self.raw)
+        if self.rec_int:
+            (ris, riv, rit) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
+            riv = int(riv)
+            if ris == '+': start = datetime.datetime.strptime(self.due_date, "%Y-%m-%d")
+            else: start = today
+            if rit == 'd': return start + datetime.timedelta(days=riv)
+            elif rit == 'w': return start + datetime.timedelta(days=riv*7)
+            elif rit == 'm': return start + datetime.timedelta(months=riv)
+            elif rit == 'y': return start + datetime.timedelta(years=riv)
 
     def incomplete(self):
         self.raw = re.sub(Todo._completed_regex, "", self.raw)
         self.completed_date = ""
         self.update(self.raw)
 
+    def set_due(self, due):
+        due = "{0}".format(due.date())
+        self.raw = re.sub(Todo._due_date_regex, " due:" + due + " ", self.raw)
+        self.update(self.raw)
+
     def add_creation_date(self):
         if self.creation_date == "":
             p = "({0}) ".format(self.priority) if self.priority != "" else ""
-            self.update("{0}{1} {2}".format(p, date.today(), self.raw.replace(p, "")))
+            self.update("{0}{1} {2}".format(p, datetime.date.today(), self.raw.replace(p, "")))
