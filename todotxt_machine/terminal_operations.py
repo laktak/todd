@@ -57,32 +57,6 @@ class TerminalOperations:
             y, x = struct.unpack('hh', buf)
             return x, y
 
-        # Query the terminal directly in bash:
-        # stty -echo; echo -en "\033[18t"; read -d t size; stty echo; size=${size/#??/}; echo $size
-
-        # Method: querying the terminal directly with escape sequences
-        # the following breaks if the terminal does not have this capability, ie if TERM=screen*
-        # response = ""
-        # c        = ""
-        # if set_terminal_raw:
-        #     original_stdin_settings = termios.tcgetattr(sys.stdin.fileno())
-        #     tty.setraw(sys.stdin.fileno())
-        # sys.stdout.write("\x1B[18t")
-        # try:
-        #     while c != "t":
-        #         c = sys.stdin.read(1)
-        #         response += c
-        # finally:
-        #     if set_terminal_raw:
-        #         termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, original_stdin_settings)
-        # response = response.split(";")
-        # rows     = int(response[-2])
-        # columns  = int(response[-1][0:-1])
-        # return (columns, rows)
-
-        # Method using curses module
-        # return self.window.getmaxyx()
-
     def move_cursor(self, row, column):
         self.output("\x1B[{0};{1}H".format(row, column))
 
@@ -102,56 +76,3 @@ class TerminalOperations:
         if length < columns:
             line += " " * (columns - length)
         return line
-
-    # solution for single key press - blocking
-    # def getch(self):
-    #     """getch() -> key character
-
-    #     Read a single keypress from stdin and return the resulting character.
-    #     Nothing is echoed to the console. This call will block if a keypress
-    #     is not already available, but will not wait for Enter to be pressed.
-
-    #     If the pressed key was a modifier key, nothing will be detected; if
-    #     it were a special function key, it may return the first character of
-    #     of an escape sequence, leaving additional characters in the buffer.
-    #     """
-    #     fd = sys.stdin.fileno()
-    #     old_settings = termios.tcgetattr(fd)
-    #     try:
-    #         tty.setraw(fd)
-    #         ch = sys.stdin.read(1)
-    #     finally:
-    #         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    #     return ch
-
-# print("\x1B]0;THIS IS A TITLE BAR DEMO...\x07")
-# print("Wait for 5 seconds...")
-# print("\x1B]0;\x07")
-
-# def screen_size_using_escapes
-#   state = `stty -g`
-#   `stty raw -echo -icanon isig`
-#   STDOUT.write "\e[18t"
-#   response = c = ""
-#   while c != 't'
-#     c = STDIN.getbyte.chr #if STDIN.ready?
-#     response += c.to_s unless c == "\e"
-#   end
-#   if response =~ /\[8;(.*);(.*)t/
-#     rows = $1
-#     cols = $2
-#     return [cols, rows]
-#   end
-#   return []
-# ensure
-#   `stty #{state}`
-# end
-
-# Ruby - get single keypress
-# def get_char
-#   state = `stty -g`
-#   `stty raw -echo -icanon isig`
-#   STDIN.getc.chr
-# ensure
-#   `stty #{state}`
-# end
