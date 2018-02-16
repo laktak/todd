@@ -26,7 +26,7 @@ from docopt import docopt
 
 import todotxt_machine
 from todotxt_machine.todos import Todos
-from todotxt_machine.urwid_ui import UrwidUI
+from todotxt_machine.main_ui import MainUI
 from todotxt_machine.colorscheme import ColorScheme
 from todotxt_machine.keys import KeyBindings
 
@@ -169,7 +169,7 @@ def main():
     enable_word_wrap = get_boolean_config_option(cfg, 'settings', 'enable-word-wrap')
 
     global view
-    view = UrwidUI(todos, keyBindings, colorscheme)
+    view = MainUI(todos, keyBindings, colorscheme)
 
     timer.start()
 

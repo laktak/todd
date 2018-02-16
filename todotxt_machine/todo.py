@@ -161,7 +161,7 @@ class Todo:
 
     def complete(self):
         today = datetime.date.today()
-        self.raw = "x " + today.isoformat() + self.raw
+        self.raw = "x " + today.isoformat() + " " + self.raw
         self.completed_date = today.isoformat()
         self.update(self.raw)
         if self.rec_int:
