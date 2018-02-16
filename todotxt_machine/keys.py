@@ -58,8 +58,9 @@ class KeyBindings:
         self.key_bindings['clear-filter'] = ['F']
         self.key_bindings['toggle-sorting'] = ['s']
         self.key_bindings['search'] = ['/']
-        self.key_bindings['search-end'] = ['enter']
         self.key_bindings['search-clear'] = ['C']
+        self.key_bindings['add-due'] = ['+']
+        self.key_bindings['subtract-due'] = ['-']
 
     def __getitem__(self, index):
         return ", ".join(self.key_bindings[index])

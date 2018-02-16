@@ -91,17 +91,16 @@ class AdvancedEdit(urwid.Edit):
         return super(AdvancedEdit, self).keypress(size, key)
 
 
-class SearchWidget(urwid.Edit):
+class EntryWidget(urwid.Edit):
 
-    def __init__(self, parent_ui, key_bindings, edit_text=""):
-        self.parent_ui = parent_ui
-        self.key_bindings = key_bindings
-        super(SearchWidget, self).__init__(edit_text=edit_text)
+    def __init__(self, edit_text, on_enter):
+        self.on_enter = on_enter
+        super(EntryWidget, self).__init__(edit_text=edit_text)
 
     def keypress(self, size, key):
-        if self.key_bindings.is_binded_to(key, 'search-end'):
-            self.parent_ui.finalize_search()
-        return super(SearchWidget, self).keypress(size, key)
+        if key == 'enter':
+            self.on_enter(self.edit_text)
+        return super(EntryWidget, self).keypress(size, key)
 
 
 class TodoWidget(urwid.Button):
@@ -562,6 +561,11 @@ class UrwidUI:
         elif self.key_bindings.is_binded_to(input, 'priority-down'):
             self.adjust_priority(focus, up=False)
 
+        elif self.key_bindings.is_binded_to(input, 'add-due'):
+            self.change_due(focus, True)
+        elif self.key_bindings.is_binded_to(input, 'subtract-due'):
+            self.change_due(focus, False)
+
         # Save current file
         elif self.key_bindings.is_binded_to(input, 'save'):
             self.save_todos()
@@ -585,6 +589,17 @@ class UrwidUI:
                 focus.todo.change_priority(priorities[0])
 
             focus.update_todo()
+
+    def change_due(self, focus, add=True):
+        self.update_footer("due" if add else "due-", set_focus=True)
+
+    def finalize_due(self, text):
+        self.frame.set_focus('body')
+        self.update_footer()
+        focus, focus_index = self.listbox.get_focus()
+        due = Todo.scan_interval(focus.todo.get_due(), text)
+        focus.todo.set_due(due)
+        focus.update_todo()
 
     def add_new_todo(self, position=False):
         if len(self.listbox.body) == 0:
@@ -676,10 +691,9 @@ class UrwidUI:
 
     def start_search(self):
         self.searching = True
-        self.update_footer()
-        self.frame.set_focus('footer')
+        self.update_footer("search", set_focus=True)
 
-    def finalize_search(self):
+    def finalize_search(self, text):
         self.search_string = ''
         self.frame.set_focus('body')
         for widget in self.listbox.body:
@@ -691,21 +705,6 @@ class UrwidUI:
         self.search_string = ''
         self.update_footer()
         self.reload_todos_from_memory()
-
-    def create_footer(self):
-        if self.searching:
-            self.search_box = SearchWidget(self, self.key_bindings, edit_text=self.search_string)
-            w = urwid.AttrMap(urwid.Columns([
-                (1, urwid.Text('/')),
-                self.search_box,
-                (16, urwid.AttrMap(
-                    urwid.Button([('header_file', 'C'), 'lear Search'], on_press=self.clear_search_term),
-                    'header', 'plain_selected'))
-            ]), 'footer')
-            urwid.connect_signal(self.search_box, 'change', self.search_box_updated)
-        else:
-            w = None
-        return w
 
     def create_help_panel(self):
         key_column_width = 12
@@ -779,6 +778,8 @@ Manipulating Todo Items
 {6} - delete the selected todo
 {7} - swap with item below
 {8} - swap with item above
+{9} - change due (add)
+{10} - change due (subtract)
 """.format(
                             self.key_bindings["toggle-complete"].ljust(key_column_width),
                             self.key_bindings["archive"].ljust(key_column_width),
@@ -789,6 +790,8 @@ Manipulating Todo Items
                             self.key_bindings["delete"].ljust(key_column_width),
                             self.key_bindings["swap-down"].ljust(key_column_width),
                             self.key_bindings["swap-up"].ljust(key_column_width),
+                            self.key_bindings["add-due"].ljust(key_column_width),
+                            self.key_bindings["subtract-due"].ljust(key_column_width),
                         ))] +
 
                         [urwid.AttrWrap(urwid.Text("""
@@ -854,11 +857,9 @@ Searching
 
                         [urwid.Text("""
 {0} - start search
-{1} - finalize search
-{2} - clear search
+{1} - clear search
 """.format(
                             self.key_bindings["search"].ljust(key_column_width),
-                            self.key_bindings["search-end"].ljust(key_column_width),
                             self.key_bindings["search-clear"].ljust(key_column_width),
                         ))]
                     ),
@@ -961,8 +962,29 @@ Searching
         else:
             self.frame.header = self.create_header(message)
 
-    def update_footer(self, message=""):
-        self.frame.footer = self.create_footer()
+    def update_footer(self, name=None, set_focus=False):
+        if name == "search":
+            self.search_box = EntryWidget(self.search_string, self.finalize_search)
+            self.frame.footer = urwid.AttrMap(urwid.Columns([
+                (1, urwid.Text('/')),
+                self.search_box,
+                (16, urwid.AttrMap(
+                    urwid.Button([('header_file', 'C'), 'lear Search'], on_press=self.clear_search_term),
+                    'header', 'plain_selected'))
+            ]), 'footer')
+            urwid.connect_signal(self.search_box, 'change', self.search_box_updated)
+        elif name == "due" or name == "due-":
+            self.edit_box = EntryWidget("" if name == "due" else "-", self.finalize_due)
+            self.frame.footer = urwid.AttrMap(urwid.Columns([
+                (12, urwid.Text('adjust due:')),
+                self.edit_box,
+            ]), 'footer')
+        else:
+            self.frame.footer = None
+
+        if set_focus:
+            if self.frame.footer: self.frame.set_focus('footer')
+            else: self.frame.set_focus('body')
 
     def main(self,
              enable_borders=False,
@@ -971,13 +993,12 @@ Searching
              show_filter_panel=False):
 
         self.header = self.create_header()
-        self.footer = self.create_footer()
 
         self.listbox = ViListBox(self.key_bindings, urwid.SimpleListWalker(
             [TodoWidget(t, self.key_bindings, self.colorscheme, self) for t in self.todos.todo_items]
         ))
 
-        self.frame = urwid.Frame(urwid.AttrMap(self.listbox, 'plain'), header=self.header, footer=self.footer)
+        self.frame = urwid.Frame(urwid.AttrMap(self.listbox, 'plain'), header=self.header, footer=None)
 
         self.view = ViColumns(self.key_bindings,
                               [

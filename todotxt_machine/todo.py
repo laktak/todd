@@ -3,6 +3,7 @@
 import re
 import random
 import datetime
+from todotxt_machine.util import Util
 
 
 class Todo:
@@ -19,6 +20,7 @@ class Todo:
     _rec_int_parts_regex = re.compile(r'(\+)?(\d+)([dwmy])')
     _priority_regex = re.compile(r'\(([A-Z])\) ')
     _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
+    _interval_parts_regex = re.compile(r'([+-])?(\d+)([dwmy])')
 
     def __init__(self, item, index):
         self.update(item)
@@ -68,6 +70,13 @@ class Todo:
     def scan_completed_date(item):
         match = Todo._completed_regex.match(item)
         return match.group(1) if match else ""
+
+    @staticmethod
+    def scan_interval(date, text):
+        (prefix, value, itype) = Todo._interval_parts_regex.match(text).groups()
+        value = int(value)
+        mod = -1 if prefix == '-' else 1
+        return Util.date_add_interval(date, itype, value * mod)
 
     def __repr__(self):
         return repr({
@@ -152,18 +161,14 @@ class Todo:
 
     def complete(self):
         today = datetime.date.today()
-        self.raw = "x {0} ".format(today) + self.raw
-        self.completed_date = "{0}".format(today)
+        self.raw = "x " + today.isoformat() + self.raw
+        self.completed_date = today.isoformat()
         self.update(self.raw)
         if self.rec_int:
-            (ris, riv, rit) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
-            riv = int(riv)
-            if ris == '+': start = datetime.datetime.strptime(self.due_date, "%Y-%m-%d")
-            else: start = today
-            if rit == 'd': return start + datetime.timedelta(days=riv)
-            elif rit == 'w': return start + datetime.timedelta(days=riv*7)
-            elif rit == 'm': return start + datetime.timedelta(months=riv)
-            elif rit == 'y': return start + datetime.timedelta(years=riv)
+            (prefix, value, itype) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
+            value = int(value)
+            date = self.get_due() if prefix == '+' else today
+            return Util.date_add_interval(date, itype, value)
 
     def incomplete(self):
         self.raw = re.sub(Todo._completed_regex, "", self.raw)
@@ -171,9 +176,12 @@ class Todo:
         self.update(self.raw)
 
     def set_due(self, due):
-        due = "{0}".format(due.date())
-        self.raw = re.sub(Todo._due_date_regex, " due:" + due + " ", self.raw)
+        if not type(due) is datetime.date: due = due.date()
+        self.raw = re.sub(Todo._due_date_regex, " due:" + due.isoformat() + " ", self.raw)
         self.update(self.raw)
+
+    def get_due(self):
+        return datetime.datetime.strptime(self.due_date, "%Y-%m-%d")
 
     def add_creation_date(self):
         if self.creation_date == "":
