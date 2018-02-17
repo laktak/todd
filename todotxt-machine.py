@@ -1,5 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-import todotxt_machine.cli
+import todoui.cli
 
-todotxt_machine.cli.main()
+todoui.cli.main()

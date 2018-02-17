@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 """todotxt-machine
 
@@ -24,11 +23,12 @@ import threading
 from collections import OrderedDict
 from docopt import docopt
 
-import todotxt_machine
-from todotxt_machine.todos import Todos
-from todotxt_machine.main_ui import MainUI
-from todotxt_machine.colorscheme import ColorScheme
-from todotxt_machine.keys import KeyBindings
+import todolib
+import todoui
+from todolib.todos import Todos
+from todoui.main_ui import MainUI
+from todoui.colorscheme import ColorScheme
+from todoui.keys import KeyBindings
 
 
 # Import the correct version of configparser
@@ -103,7 +103,7 @@ def main():
     random.seed()
 
     # Parse command line
-    arguments = docopt(__doc__, version=todotxt_machine.version)
+    arguments = docopt(__doc__, version=todolib.version)
     # pp(arguments) ; exit(0)
 
     # Validate readline editing mode option (docopt doesn't handle this)

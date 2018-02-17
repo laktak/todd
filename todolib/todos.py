@@ -2,7 +2,7 @@
 # coding=utf-8
 import re
 import random
-from todotxt_machine.todo import Todo
+from todolib.todo import Todo
 
 
 class Todos:

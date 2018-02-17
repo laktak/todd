@@ -3,7 +3,7 @@
 import re
 import random
 import datetime
-from todotxt_machine.util import Util
+from todolib.util import Util
 
 
 class Todo:
@@ -20,7 +20,6 @@ class Todo:
     _rec_int_parts_regex = re.compile(r'(\+)?(\d+)([dwmy])')
     _priority_regex = re.compile(r'\(([A-Z])\) ')
     _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
-    _interval_parts_regex = re.compile(r'([+-])?(\d+)([dwmy])')
 
     def __init__(self, item, index):
         self.update(item)
@@ -70,13 +69,6 @@ class Todo:
     def scan_completed_date(item):
         match = Todo._completed_regex.match(item)
         return match.group(1) if match else ""
-
-    @staticmethod
-    def scan_interval(date, text):
-        (prefix, value, itype) = Todo._interval_parts_regex.match(text).groups()
-        value = int(value)
-        mod = -1 if prefix == '-' else 1
-        return Util.date_add_interval(date, itype, value * mod)
 
     def __repr__(self):
         return repr({

@@ -26,7 +26,7 @@ License
 from setuptools import setup, find_packages
 
 from setuptools.command.test import test as TestCommand
-import todotxt_machine
+import todoui
 import sys
 
 
@@ -52,17 +52,17 @@ except IOError:
 
 
 setup(name=NAME,
-      version=todotxt_machine.version,
+      version=todolib.version,
       author="Anthony DiGirolamo",
       author_email="anthony.digirolamo@gmail.com",
       url="https://github.com/AnthonyDiGirolamo/todotxt-machine",
       description="An interactive terminal based todo.txt file editor with an interface similar to mutt",
       long_description=long_description,
       keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
-      packages=find_packages(exclude=["todotxt_machine/test*"]),
+      packages=find_packages(exclude=["todoui/test*"]),
       include_package_data=True,
       entry_points={
-          'console_scripts': ['todotxt-machine = todotxt_machine.cli:main']
+          'console_scripts': ['todotxt-machine = todoui.cli:main']
       },
       classifiers=[
           "Development Status :: 4 - Beta",
