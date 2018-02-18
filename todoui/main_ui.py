@@ -2,7 +2,7 @@ import urwid
 import collections
 from todolib.todo import Todo, Util
 from todoui.advanced_edit import AdvancedEdit
-from todoui.components_ui import EntryWidget, TodoWidget, ViPile, ViColumns, ViListBox
+from todoui.components_ui import EntryWidget, MenuItem, TodoWidget, ViColumns, ViListBox
 from todoui.main_help import MainHelp
 
 class MainUI:
@@ -24,6 +24,7 @@ class MainUI:
 
         self.toolbar_is_open = False
         self.help_panel_is_open = False
+        self.context_panel = None
         self.filter_panel_is_open = False
         self.filtering = False
         self.searching = False
@@ -51,8 +52,8 @@ class MainUI:
         self.listbox.set_focus(len(self.listbox.body) - 1)
 
     def toggle_help_panel(self, button=None):
-        if self.filter_panel_is_open:
-            self.toggle_filter_panel()
+        if self.context_panel: self.toggle_context_panel()
+        if self.filter_panel_is_open: self.toggle_filter_panel()
         if self.help_panel_is_open:
             self.view.contents.pop()
             self.help_panel_is_open = False
@@ -81,9 +82,20 @@ class MainUI:
         self.move_selection_top()
         self.update_header()
 
+    def toggle_context_panel(self, button=None):
+        if self.help_panel_is_open: self.toggle_help_panel()
+        if self.filter_panel_is_open: self.toggle_filter_panel()
+        if self.context_panel:
+            self.view.contents.pop()
+            self.context_panel = None
+        else:
+            self.context_panel = self.create_context_panel()
+            self.view.contents.append((self.context_panel, self.view.options(width_type='weight', width_amount=1)))
+            self.view.focus_position = 1
+
     def toggle_filter_panel(self, button=None):
-        if self.help_panel_is_open:
-            self.toggle_help_panel()
+        if self.help_panel_is_open: self.toggle_help_panel()
+        if self.context_panel: self.toggle_context_panel()
         if self.filter_panel_is_open:
             self.view.contents.pop()
             self.filter_panel_is_open = False
@@ -199,6 +211,8 @@ class MainUI:
             self.toggle_help_panel()
         elif self.key_bindings.is_binded_to(input, 'toggle-toolbar'):
             self.toggle_toolbar()
+        elif self.key_bindings.is_binded_to(input, 'toggle-context'):
+            self.toggle_context_panel()
         elif self.key_bindings.is_binded_to(input, 'toggle-filter'):
             self.toggle_filter_panel()
         elif self.key_bindings.is_binded_to(input, 'clear-filter'):
@@ -399,37 +413,46 @@ class MainUI:
         self.update_footer()
         self.reload_todos_from_memory()
 
+    def create_context_panel(self):
+        allc = self.todos.all_contexts()
+
+        self.context_list = ViListBox(self.key_bindings, urwid.SimpleListWalker(
+            [urwid.Text('Switch Context', align='center')] +
+            [urwid.Divider(u'─')] +
+            [urwid.AttrMap(MenuItem('(all)', self.toggle_context_panel), 'dialog_color', 'plain_selected')] +
+            [urwid.AttrMap(MenuItem([c[1:]], self.toggle_context_panel), 'dialog_color', 'plain_selected') for c in allc]
+        ))
+
+        if self.active_contexts:
+            sel = self.active_contexts[0]
+            for idx, c in enumerate(allc):
+                if c == sel:
+                    self.context_list.body.set_focus(idx + 3)
+        urwid.connect_signal(self.context_list.body, 'modified', self.context_list_updated)
+        return urwid.AttrMap(urwid.Padding(self.context_list, left=1, right=1, min_width=10), 'dialog_color')
+
+    def context_list_updated(self):
+        focus = self.context_list.get_focus()[0].original_widget.text
+        if focus == '(all)':
+            self.active_contexts = []
+            self.delete_todo_widgets()
+            self.reload_todos_from_memory()
+        else:
+            self.active_contexts = [ '@' + focus ]
+            self.active_projects = []
+            self.filter_todo_list()
+
     def create_filter_panel(self):
-        w = urwid.AttrMap(
-            urwid.Padding(
-                urwid.ListBox(
-                    [
-                        ViPile(
-                            self.key_bindings,
-                            [urwid.Text('Contexts & Projects', align='center')] +
-                            [urwid.Divider(u'─')] +
-                            [urwid.AttrWrap(urwid.CheckBox(c, state=(c in self.active_contexts), on_state_change=self.checkbox_clicked, user_data=['context', c]), 'context_dialog_color', 'context_selected') for c in self.todos.all_contexts()] +
-                            [urwid.Divider(u'─')] +
-                            [urwid.AttrWrap(urwid.CheckBox(p, state=(p in self.active_projects), on_state_change=self.checkbox_clicked, user_data=['project', p]), 'project_dialog_color', 'project_selected') for p in self.todos.all_projects()] +
-                            [urwid.Divider(u'─')] +
-                            [urwid.AttrMap(urwid.Button(['Clear ', ('header_file_dialog_color', 'F'), 'ilters'], on_press=self.clear_filters), 'dialog_color', 'plain_selected')]
-                        )
-                    ] +
-                    [urwid.Divider()],
-                ),
-                left=1, right=1, min_width=10),
-            'dialog_color')
-
-        bg = urwid.AttrWrap(urwid.SolidFill(u" "), 'dialog_background')  # u"\u2592"
-        shadow = urwid.AttrWrap(urwid.SolidFill(u" "), 'dialog_shadow')
-
-        bg = urwid.Overlay(shadow, bg,
-                           ('fixed left', 2), ('fixed right', 1),
-                           ('fixed top', 2), ('fixed bottom', 1))
-        w = urwid.Overlay(w, bg,
-                          ('fixed left', 1), ('fixed right', 2),
-                          ('fixed top', 1), ('fixed bottom', 2))
-        return w
+        flist = ViListBox(self. key_bindings,
+            [urwid.Text('Contexts & Projects', align='center')] +
+            [urwid.Divider(u'─')] +
+            [urwid.AttrWrap(urwid.CheckBox(c, state=(c in self.active_contexts), on_state_change=self.checkbox_clicked, user_data=['context', c]), 'context_dialog_color', 'context_selected') for c in self.todos.all_contexts()] +
+            [urwid.Divider(u'─')] +
+            [urwid.AttrWrap(urwid.CheckBox(p, state=(p in self.active_projects), on_state_change=self.checkbox_clicked, user_data=['project', p]), 'project_dialog_color', 'project_selected') for p in self.todos.all_projects()] +
+            [urwid.Divider(u'─')] +
+            [urwid.AttrMap(urwid.Button(['Clear ', ('header_file_dialog_color', 'F'), 'ilters'], on_press=self.clear_filters), 'dialog_color', 'plain_selected')]
+        )
+        return urwid.AttrMap(urwid.Padding(flist, left=1, right=1, min_width=10), 'dialog_color')
 
     def delete_todo_widgets(self):
         for i in range(len(self.listbox.body) - 1, -1, -1):

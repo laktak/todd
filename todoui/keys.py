@@ -54,6 +54,7 @@ class KeyBindings:
         self.key_bindings['edit-delete-end'] = ['ctrl k']
         self.key_bindings['edit-delete-beginning'] = ['ctrl u']
         self.key_bindings['edit-paste'] = ['ctrl y']
+        self.key_bindings['toggle-context'] = ['c']
         self.key_bindings['toggle-filter'] = ['f']
         self.key_bindings['clear-filter'] = ['F']
         self.key_bindings['toggle-sorting'] = ['s']

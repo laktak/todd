@@ -133,9 +133,7 @@ Here is a config file with a complete colorscheme definition:
     header_todo_pending_count=h228,h235
     header_todo_done_count=h156,h235
     header_file=h48,h235
-    dialog_background=,h248
     dialog_color=,h240
-    dialog_shadow=,h238
     footer=h39,h235
     search_match=h222,h235
     completed=h59
@@ -179,16 +177,10 @@ adding a comma immediately after the ``=``
 ::
 
     selected=,h238
-    dialog_background=,h248
     dialog_color=,h240
-    dialog_shadow=,h238
 
 If you want to use your terminal's default foreground and background
-color use blank strings and keep the comma:
-
-::
-
-    dialog_background=,
+color use blank strings and keep the comma.
 
 Let me know if you make any good colorschemes and I'll add it to the
 default collection.

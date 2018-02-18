@@ -1,8 +1,6 @@
 import urwid
 import collections
-from todolib.todo import Todo, Util
-from todoui.advanced_edit import AdvancedEdit
-from todoui.components_ui import EntryWidget, TodoWidget, ViPile, ViColumns, ViListBox
+from todoui.components_ui import ViListBox
 
 class MainHelp:
 
@@ -144,9 +142,11 @@ Filtering
                         # [ urwid.Divider(u'─') ] +
 
                         [urwid.Text("""
-{0} - open / close the filtering panel
-{1} - clear any active filters
+{0} - switch context
+{1} - open / close the filtering panel
+{2} - clear any active filters
 """.format(
+                            key_bindings["toggle-context"].ljust(key_column_width),
                             key_bindings["toggle-filter"].ljust(key_column_width),
                             key_bindings["clear-filter"].ljust(key_column_width),
                         ))] +

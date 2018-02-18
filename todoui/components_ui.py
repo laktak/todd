@@ -1,7 +1,6 @@
 import urwid
 from todolib.todo import Todo
 
-
 class EntryWidget(urwid.Edit):
 
     def __init__(self, edit_text, on_enter):
@@ -12,6 +11,21 @@ class EntryWidget(urwid.Edit):
         if key == 'enter':
             self.on_enter(self.edit_text)
         return super(EntryWidget, self).keypress(size, key)
+
+
+class MenuItem(urwid.Text):
+    def __init__(self, caption, on_enter=None):
+        urwid.Text.__init__(self, caption)
+        self.on_enter = on_enter
+
+    def keypress(self, size, key):
+        if key == 'enter' and self.on_enter:
+            self.on_enter()
+        else:
+            return key
+
+    def selectable(self):
+        return True
 
 
 class TodoWidget(urwid.Button):
@@ -171,24 +185,6 @@ class TodoLineBox(urwid.WidgetDecoration, urwid.WidgetWrap):
 
         urwid.WidgetDecoration.__init__(self, original_widget)
         urwid.WidgetWrap.__init__(self, pile)
-
-
-class ViPile(urwid.Pile):
-
-    def __init__(self, key_bindings, widget_list, focus_item=None):
-        """Pile with Vi-like navigation."""
-        super(ViPile, self).__init__(widget_list, focus_item)
-
-        command_map = urwid.command_map.copy()
-
-        keys = key_bindings.getKeyBinding('up')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_UP
-        keys = key_bindings.getKeyBinding('down')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_DOWN
-
-        self._command_map = command_map
 
 
 class ViColumns(urwid.Columns):
