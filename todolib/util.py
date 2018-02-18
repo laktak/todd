@@ -29,7 +29,7 @@ class Util:
         return datetime.date(y, m, d) if d < d_last.day else d_last
 
     @staticmethod
-    def scan_interval(date, text):
+    def date_add_interval_str(date, text):
         (prefix, value, itype) = Util._interval_parts_regex.match(text).groups()
         value = int(value)
         mod = -1 if prefix == '-' else 1

@@ -1,103 +1,87 @@
 import urwid
 import collections
-from todoui.components_ui import ViListBox
+from todoui.components import ViListBox
 
 class MainHelp:
 
     def create_help_panel(key_bindings):
+
         key_column_width = 12
         header_highlight = 'plain_selected'
-        return urwid.AttrMap(
-            urwid.LineBox(
-                urwid.Padding(
-                    ViListBox(key_bindings,
-                              [urwid.Divider()] +
+        items = (
+        [urwid.Text('Key Bindings', align='center')] +
 
-                              [urwid.AttrWrap(urwid.Text("""
+        # [urwid.Divider()] +
+
+        [urwid.AttrWrap(urwid.Text("""
 General
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
+        [urwid.Text("""
 {0} - show / hide this help message
 {1} - quit and save
-{2} - show / hide toolbar
-{3} - toggle word wrap
-{4} - toggle borders on todo items
-{5} - save current todo file
-{6} - reload the todo file (discarding changes)
+{2} - toggle word wrap
+{3} - save current todo file
+{4} - reload the todo file (discarding changes)
 """.format(
-                            key_bindings["toggle-help"].ljust(key_column_width),
-                            key_bindings["quit"].ljust(key_column_width),
-                            key_bindings["toggle-toolbar"].ljust(key_column_width),
-                            key_bindings["toggle-wrapping"].ljust(key_column_width),
-                            key_bindings["toggle-borders"].ljust(key_column_width),
-                            key_bindings["save"].ljust(key_column_width),
-                            key_bindings["reload"].ljust(key_column_width),
-                        ))] +
+            key_bindings["toggle-help"].ljust(key_column_width),
+            key_bindings["quit"].ljust(key_column_width),
+            key_bindings["toggle-wrapping"].ljust(key_column_width),
+            key_bindings["save"].ljust(key_column_width),
+            key_bindings["reload"].ljust(key_column_width),
+        ))] +
 
-                        [urwid.AttrWrap(urwid.Text("""
+        [urwid.AttrWrap(urwid.Text("""
 Movement
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
-{0} - select any todo, checkbox or button
-{1} - move selection down
-{2} - move selection up
-{3} - move selection to the top item
-{4} - move selection to the bottom item
-{5} - move selection between todos and filter panel
-{6}
-{7} - toggle focus between todos, filter panel, and toolbar
+        [urwid.Text("""
+{0} - move selection down
+{1} - move selection up
+{2} - move selection to the top item
+{3} - move selection to the bottom item
+{4} - move focus between panels
+{5}
 """.format(
-                            "mouse click".ljust(key_column_width),
-                            key_bindings["down"].ljust(key_column_width),
-                            key_bindings["up"].ljust(key_column_width),
-                            key_bindings["top"].ljust(key_column_width),
-                            key_bindings["bottom"].ljust(key_column_width),
-                            key_bindings["left"].ljust(key_column_width),
-                            key_bindings["right"].ljust(key_column_width),
-                            key_bindings["change-focus"].ljust(key_column_width),
-                        ))] +
+            key_bindings["down"].ljust(key_column_width),
+            key_bindings["up"].ljust(key_column_width),
+            key_bindings["top"].ljust(key_column_width),
+            key_bindings["bottom"].ljust(key_column_width),
+            key_bindings["left"].ljust(key_column_width),
+            key_bindings["right"].ljust(key_column_width),
+        ))] +
 
-                        [urwid.AttrWrap(urwid.Text("""
+        [urwid.AttrWrap(urwid.Text("""
 Manipulating Todo Items
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
-{0} - complete / un-complete selected todo item
-{1} - archive completed todo items to done.txt (if specified)
-{2} - add a new todo to the end of the list
-{3} - add a todo after the selected todo (when not filtering)
-{4} - add a todo before the selected todo (when not filtering)
-{5} - edit the selected todo
-{6} - delete the selected todo
-{7} - swap with item below
-{8} - swap with item above
-{9} - change due (add)
-{10} - change due (subtract)
+        [urwid.Text("""
+{0} - mark / unmark selected item done
+{1} - archive done items to done.txt (if specified)
+{2} - add a new todo item
+{3} - edit the selected item
+{4} - delete the selected item
+{5} - change due (add)
+{6} - change due (subtract)
+{7} - higher priority
+{8} - lower priority
 """.format(
-                            key_bindings["toggle-complete"].ljust(key_column_width),
-                            key_bindings["archive"].ljust(key_column_width),
-                            key_bindings["append"].ljust(key_column_width),
-                            key_bindings["insert-after"].ljust(key_column_width),
-                            key_bindings["insert-before"].ljust(key_column_width),
-                            key_bindings["edit"].ljust(key_column_width),
-                            key_bindings["delete"].ljust(key_column_width),
-                            key_bindings["swap-down"].ljust(key_column_width),
-                            key_bindings["swap-up"].ljust(key_column_width),
-                            key_bindings["add-due"].ljust(key_column_width),
-                            key_bindings["subtract-due"].ljust(key_column_width),
-                        ))] +
+            key_bindings["toggle-done"].ljust(key_column_width),
+            key_bindings["archive"].ljust(key_column_width),
+            key_bindings["new"].ljust(key_column_width),
+            key_bindings["edit"].ljust(key_column_width),
+            key_bindings["delete"].ljust(key_column_width),
+            key_bindings["add-due"].ljust(key_column_width),
+            key_bindings["subtract-due"].ljust(key_column_width),
+            key_bindings["priority-lower"].ljust(key_column_width),
+            key_bindings["priority-higher"].ljust(key_column_width),
+        ))] +
 
-                        [urwid.AttrWrap(urwid.Text("""
+        [urwid.AttrWrap(urwid.Text("""
 While Editing a Todo
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
+        [urwid.Text("""
 {0} - tab complete contexts and projects
 {1} - save todo item
 {2} - move cursor left and right
@@ -111,56 +95,55 @@ While Editing a Todo
 {10} - delete from the cursor to the beginning of the line
 {11} - paste last deleted text
 """.format(
-                            key_bindings["edit-complete"].ljust(key_column_width),
-                            key_bindings["edit-save"].ljust(key_column_width),
-                            key_bindings["edit-move-left"].ljust(key_column_width),
-                            key_bindings["edit-move-right"].ljust(key_column_width),
-                            key_bindings["edit-word-left"].ljust(key_column_width),
-                            key_bindings["edit-word-right"].ljust(key_column_width),
-                            key_bindings["edit-home"].ljust(key_column_width),
-                            key_bindings["edit-end"].ljust(key_column_width),
-                            key_bindings["edit-delete-word"].ljust(key_column_width),
-                            key_bindings["edit-delete-end"].ljust(key_column_width),
-                            key_bindings["edit-delete-beginning"].ljust(key_column_width),
-                            key_bindings["edit-paste"].ljust(key_column_width),
-                        ))] +
+            key_bindings["edit-complete"].ljust(key_column_width),
+            key_bindings["edit-save"].ljust(key_column_width),
+            key_bindings["edit-move-left"].ljust(key_column_width),
+            key_bindings["edit-move-right"].ljust(key_column_width),
+            key_bindings["edit-word-left"].ljust(key_column_width),
+            key_bindings["edit-word-right"].ljust(key_column_width),
+            key_bindings["edit-home"].ljust(key_column_width),
+            key_bindings["edit-end"].ljust(key_column_width),
+            key_bindings["edit-delete-word"].ljust(key_column_width),
+            key_bindings["edit-delete-end"].ljust(key_column_width),
+            key_bindings["edit-delete-beginning"].ljust(key_column_width),
+            key_bindings["edit-paste"].ljust(key_column_width),
+        ))] +
 
-                        [urwid.AttrWrap(urwid.Text("""
+        [urwid.AttrWrap(urwid.Text("""
 Sorting
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
+        [urwid.Text("""
 {0} - toggle sort order (Unsorted, Ascending, Descending)
                sort order is saved on quit
 """.format(
-                            key_bindings["toggle-sorting"].ljust(key_column_width),
-                        ))] +
-                        [urwid.AttrWrap(urwid.Text("""
+            key_bindings["toggle-sorting"].ljust(key_column_width),
+        ))] +
+        [urwid.AttrWrap(urwid.Text("""
 Filtering
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
+        [urwid.Text("""
 {0} - switch context
 {1} - open / close the filtering panel
 {2} - clear any active filters
 """.format(
-                            key_bindings["toggle-context"].ljust(key_column_width),
-                            key_bindings["toggle-filter"].ljust(key_column_width),
-                            key_bindings["clear-filter"].ljust(key_column_width),
-                        ))] +
-                        [urwid.AttrWrap(urwid.Text("""
+            key_bindings["toggle-context"].ljust(key_column_width),
+            key_bindings["toggle-filter"].ljust(key_column_width),
+            key_bindings["clear-filter"].ljust(key_column_width),
+        ))] +
+        [urwid.AttrWrap(urwid.Text("""
 Searching
 """.strip()), header_highlight)] +
-                        # [ urwid.Divider(u'─') ] +
 
-                        [urwid.Text("""
+        [urwid.Text("""
 {0} - start search
 {1} - clear search
 """.format(
-                            key_bindings["search"].ljust(key_column_width),
-                            key_bindings["search-clear"].ljust(key_column_width),
-                        ))]
-                    ),
-                    left=1, right=1, min_width=10), title='Key Bindings'), 'default')
+            key_bindings["search"].ljust(key_column_width),
+            key_bindings["search-clear"].ljust(key_column_width),
+        ))])
+        return urwid.AttrMap(
+            urwid.Padding(
+                ViListBox(key_bindings, items),
+                left=1, right=1, min_width=10), 'default')

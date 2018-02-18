@@ -1,26 +1,27 @@
 # -*- coding: utf-8 -*-
 
 """
-todotxt-machine
-===============
+todd
+====
 
 An interactive terminal based todo.txt file editor with an
-interface similar to [mutt](http://www.mutt.org/).
+interface similar to [mutt](http://www.mutt.org/). Based on
+todotxt-machine <https://github.com/AnthonyDiGirolamo/todotxt-machine>.
 
 Requirements
 ------------
 
-Python 2.7 or Python 3.3 with readline support.
+Python 3.6 with readline support.
 
 Documentation
 -------------
 
-The documentation for ``todotxt-machine`` is `available on github <https://github.com/AnthonyDiGirolamo/todotxt-machine>`_.
+The documentation for ``todd`` is `available on github <https://github.com/laktak/todd>`_.
 
 License
 -------
 
-``todotxt-machine`` is licensed under a GPLv3 license, see ``LICENSE`` for details.
+``todd`` is licensed under a GPLv3 license, see ``LICENSE`` for details.
 """
 
 from setuptools import setup, find_packages
@@ -43,7 +44,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
-NAME = "todotxt-machine"
+NAME = "todd"
 
 try:
     long_description = open("README.rst").read()
@@ -53,16 +54,16 @@ except IOError:
 
 setup(name=NAME,
       version=todolib.version,
-      author="Anthony DiGirolamo",
-      author_email="anthony.digirolamo@gmail.com",
-      url="https://github.com/AnthonyDiGirolamo/todotxt-machine",
+      author="Christian Zangl",
+      author_email="laktak@cdak.net",
+      url="https://github.com/laktak/todd",
       description="An interactive terminal based todo.txt file editor with an interface similar to mutt",
       long_description=long_description,
       keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
       packages=find_packages(exclude=["todoui/test*"]),
       include_package_data=True,
       entry_points={
-          'console_scripts': ['todotxt-machine = todoui.cli:main']
+          'console_scripts': ['todd = todoui.cli:main']
       },
       classifiers=[
           "Development Status :: 4 - Beta",
@@ -72,8 +73,7 @@ setup(name=NAME,
           "Natural Language :: English",
           "Operating System :: POSIX :: Linux",
           "Operating System :: MacOS",
-          "Programming Language :: Python :: 2.7",
-          "Programming Language :: Python :: 3.3",
+          "Programming Language :: Python :: 3.6",
           "Topic :: Office/Business :: Scheduling",
       ],
       install_requires=['setuptools', 'docopt>=0.6.2', 'urwid>=1.2.1'],

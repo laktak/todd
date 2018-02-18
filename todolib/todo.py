@@ -9,8 +9,10 @@ from todolib.util import Util
 class Todo:
     """Single Todo item"""
 
+    _priority_regex = re.compile(r'\(([A-Z])\) ')
     _context_regex = re.compile(r'(?:^|\s+)(@\S+)')
     _project_regex = re.compile(r'(?:^|\s+)(\+\S+)')
+    _done_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
     _creation_date_regex = re.compile(r'^'
                                       r'(?:x \d\d\d\d-\d\d-\d\d )?'
                                       r'(?:\(\w\) )?'
@@ -18,24 +20,22 @@ class Todo:
     _due_date_regex = re.compile(r'\s*due:(\d\d\d\d-\d\d-\d\d)\s*')
     _rec_int_regex = re.compile(r'\s*rec:(\+?\d+[dwmy])\s*')
     _rec_int_parts_regex = re.compile(r'(\+)?(\d+)([dwmy])')
-    _priority_regex = re.compile(r'\(([A-Z])\) ')
-    _completed_regex = re.compile(r'^x (\d\d\d\d-\d\d-\d\d) ')
 
     def __init__(self, item, index):
-        self.update(item)
         self.raw_index = index
+        self.update(item)
 
     def update(self, item):
         self.raw = item.strip()
         self.priority = Todo.scan_priority(item)
         self.contexts = Todo.scan_contexts(item)
         self.projects = Todo.scan_projects(item)
+        self.done_date = Todo.scan_done_date(item)
         self.creation_date = Todo.scan_creation_date(item)
         self.due_date = Todo.scan_due_date(item)
         self.rec_int = Todo.scan_rec_int(item)
-        self.completed_date = Todo.scan_completed_date(item)
+
         self.colored = self.highlight()
-        # self.colored_length = TerminalOperations.length_ignoring_escapes(self.colored)
 
     @staticmethod
     def scan_contexts(item):
@@ -66,9 +66,13 @@ class Todo:
         return match.group(1) if match else ""
 
     @staticmethod
-    def scan_completed_date(item):
-        match = Todo._completed_regex.match(item)
+    def scan_done_date(item):
+        match = Todo._done_regex.match(item)
         return match.group(1) if match else ""
+
+    @staticmethod
+    def get_current_date(inc = 0):
+        return (datetime.date.today() + datetime.timedelta(days=inc)).isoformat()
 
     def __repr__(self):
         return repr({
@@ -76,12 +80,12 @@ class Todo:
             "colored": self.colored,
             "raw_index": self.raw_index,
             "priority": self.priority,
+            "done_date": self.done_date,
+            "creation_date": self.creation_date,
             "contexts": self.contexts,
             "projects": self.projects,
-            "creation_date": self.creation_date,
             "due_date": self.due_date,
             "rec_int": self.rec_int,
-            "completed_date": self.completed_date,
         })
 
     def highlight(self, line="", show_due_date=True, show_contexts=True, show_projects=True, show_rec_int=True):
@@ -89,7 +93,7 @@ class Todo:
         color_list = [colored]
 
         if colored[:2] == "x ":
-            color_list = ('completed', color_list)
+            color_list = ('done', color_list)
         else:
             words_to_be_highlighted = self.contexts + self.projects
             if self.due_date:
@@ -143,29 +147,30 @@ class Todo:
             self.raw = '{}{}'.format(new_priority, self.raw)
         self.update(self.raw)
 
-    def is_complete(self):
+    def is_done(self):
         if self.raw[0:2] == "x ":
             return True
-        elif self.completed_date == "":
+        elif self.done_date == "":
             return False
         else:
             return True
 
-    def complete(self):
-        today = datetime.date.today()
-        self.raw = "x " + today.isoformat() + " " + self.raw
-        self.completed_date = today.isoformat()
-        self.update(self.raw)
-        if self.rec_int:
-            (prefix, value, itype) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
-            value = int(value)
-            date = self.get_due() if prefix == '+' else today
-            return Util.date_add_interval(date, itype, value)
+    def set_done(self, done = True):
+        if done:
+            today = datetime.date.today()
+            self.raw = "x " + today.isoformat() + " " + self.raw
+            self.update(self.raw)
+            if self.rec_int:
+                (prefix, value, itype) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
+                value = int(value)
+                date = self.get_due() if prefix == '+' else today
+                return Util.date_add_interval(date, itype, value)
+        else:
+            self.raw = re.sub(Todo._done_regex, "", self.raw)
+            self.update(self.raw)
 
-    def incomplete(self):
-        self.raw = re.sub(Todo._completed_regex, "", self.raw)
-        self.completed_date = ""
-        self.update(self.raw)
+    def is_due(self, date):
+        return not self.is_done() and self.due_date and self.due_date <= date
 
     def set_due(self, due):
         if not type(due) is datetime.date: due = due.date()
@@ -173,7 +178,7 @@ class Todo:
         self.update(self.raw)
 
     def get_due(self):
-        return datetime.datetime.strptime(self.due_date, "%Y-%m-%d")
+        return datetime.datetime.strptime(self.due_date, "%Y-%m-%d") if self.due_date else None
 
     def add_creation_date(self):
         if self.creation_date == "":

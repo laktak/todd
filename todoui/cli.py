@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-"""todotxt-machine
+"""todd
 
 Usage:
-  todotxt-machine [--config FILE] [TODOFILE] [DONEFILE]
-  todotxt-machine (-h | --help)
-  todotxt-machine --version
-  todotxt-machine --show-default-bindings
+  todd [--config FILE] [TODOFILE] [DONEFILE]
+  todd (-h | --help)
+  todd --version
+  todd --show-default-bindings
 
 Options:
-  -c FILE --config=FILE               Path to your todotxt-machine configuraton file [default: ~/.todotxt-machinerc]
+  -c FILE --config=FILE               Path to your todd configuraton file [default: ~/.toddrc]
   -h --help                           Show this screen.
   --version                           Show version.
   --show-default-bindings             Show default keybindings in config parser format
@@ -163,9 +163,6 @@ def main():
 
     todos = Todos(todos_raw, todotxt_file_path, donetxt_file_path)
 
-    show_toolbar = get_boolean_config_option(cfg, 'settings', 'show-toolbar')
-    show_filter_panel = get_boolean_config_option(cfg, 'settings', 'show-filter-panel')
-    enable_borders = get_boolean_config_option(cfg, 'settings', 'enable-borders')
     enable_word_wrap = get_boolean_config_option(cfg, 'settings', 'enable-word-wrap')
 
     global view
@@ -173,11 +170,7 @@ def main():
 
     timer.start()
 
-    view.main(  # start up the urwid UI event loop
-        enable_borders,
-        enable_word_wrap,
-        show_toolbar,
-        show_filter_panel)
+    view.main(enable_word_wrap)  # start up the urwid UI event loop
 
     # UI is now shut down
 
