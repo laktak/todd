@@ -60,7 +60,7 @@ setup(name=NAME,
       description="An interactive terminal based todo.txt file editor with an interface similar to mutt",
       long_description=long_description,
       keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
-      packages=find_packages(exclude=["todoui/test*"]),
+      packages=find_packages(exclude=["todolib/test*"]),
       include_package_data=True,
       entry_points={
           'console_scripts': ['todd = todoui.cli:main']

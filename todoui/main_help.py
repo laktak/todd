@@ -83,20 +83,18 @@ While Editing a Todo
 
         [urwid.Text("""
 {0} - tab complete contexts and projects
-{1} - save todo item
-{2} - move cursor left and right
-{3}
-{4} - move cursor backwards (left) by one word
-{5} - move cursor forwards (right) by one word
-{6} - move cursor the beginning or end of the line
-{7}
-{8} - delete one word backwards
-{9} - delete from the cursor to the end of the line
-{10} - delete from the cursor to the beginning of the line
-{11} - paste last deleted text
+{1} - move cursor left and right
+{2}
+{3} - move cursor backwards (left) by one word
+{4} - move cursor forwards (right) by one word
+{5} - move cursor the beginning or end of the line
+{6}
+{7} - delete one word backwards
+{8} - delete from the cursor to the end of the line
+{9} - delete from the cursor to the beginning of the line
+{10} - paste last deleted text
 """.format(
             key_bindings["edit-complete"].ljust(key_column_width),
-            key_bindings["edit-save"].ljust(key_column_width),
             key_bindings["edit-move-left"].ljust(key_column_width),
             key_bindings["edit-move-right"].ljust(key_column_width),
             key_bindings["edit-word-left"].ljust(key_column_width),
@@ -114,23 +112,9 @@ Sorting
 """.strip()), header_highlight)] +
 
         [urwid.Text("""
-{0} - toggle sort order (Unsorted, Ascending, Descending)
-               sort order is saved on quit
+{0} - toggle sort order
 """.format(
-            key_bindings["toggle-sorting"].ljust(key_column_width),
-        ))] +
-        [urwid.AttrWrap(urwid.Text("""
-Filtering
-""".strip()), header_highlight)] +
-
-        [urwid.Text("""
-{0} - switch context
-{1} - open / close the filtering panel
-{2} - clear any active filters
-""".format(
-            key_bindings["toggle-context"].ljust(key_column_width),
-            key_bindings["toggle-filter"].ljust(key_column_width),
-            key_bindings["clear-filter"].ljust(key_column_width),
+            key_bindings["toggle-sort-order"].ljust(key_column_width),
         ))] +
         [urwid.AttrWrap(urwid.Text("""
 Searching
@@ -139,11 +123,14 @@ Searching
         [urwid.Text("""
 {0} - start search
 {1} - clear search
+{2} - switch context
 """.format(
             key_bindings["search"].ljust(key_column_width),
             key_bindings["search-clear"].ljust(key_column_width),
+            key_bindings["toggle-context"].ljust(key_column_width),
         ))])
+
         return urwid.AttrMap(
             urwid.Padding(
                 ViListBox(key_bindings, items),
-                left=1, right=1, min_width=10), 'default')
+                left=1, right=1, min_width=10), 'dialog_color')

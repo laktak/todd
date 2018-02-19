@@ -1,28 +1,21 @@
-todd
-====
+# todd
 
 todotxt-machine is an interactive terminal based [todo.txt](http://todotxt.com/) file editor with an interface similar to [mutt](http://www.mutt.org/). It follows [the todo.txt format](https://github.com/ginatrapani/todo.txt-cli/wiki/The-Todo.txt-Format) and stores todo items in plain text. It is based on [todotxt-machine](https://github.com/AnthonyDiGirolamo/todotxt-machine).
 
-Features
---------
+## Features
 
 - View your todos in a list with helpful syntax highlighting
-- Archive done todos
-- Define your own colorschemes
-- Tab completion of contexts and projects
-- Filter contexts and projects
-- Search for the todos you want with fuzzy matching
-- Sort in ascending or descending order, or keep things unsorted
-- Clickable UI elements
+- Switch context
+- Sort by due
+- Search with fuzzy matching
+- Tab completion
 
-Requirements
-------------
+## Requirements
 
 Python 3.6 on Linux or Mac OS X.
 [urwid](http://excess.org/urwid/)
 
-Installation
-------------
+## Installation
 
 ### Using [pip](https://pypi.python.org/pypi/pip)
 
@@ -36,8 +29,7 @@ Download or clone this repo and run the `todd.py` script.
     cd todd
     ./todd.py
 
-Command Line Options
---------------------
+## Command Line Options
 
     todd
 
@@ -58,8 +50,7 @@ Command Line Options
 
 
 
-Config File
------------
+## Config File
 
 You can tell todd to use the same todo.txt file whenever it
 starts up by adding a ``file`` entry to the `~/.toddrc` file.
@@ -74,8 +65,7 @@ define new themes.  Here is a short example:
     enable-word-wrap = True
     colorscheme = myawesometheme
 
-Color Schemes
--------------
+## Color Schemes
 
 Here is a config file with a complete colorscheme definition:
 
@@ -89,6 +79,7 @@ Here is a config file with a complete colorscheme definition:
     header=h250,h235
     header_todo_count=h39,h235
     header_todo_due_count=h228,h235
+    header_sort=h48,h235
     header_file=h48,h235
     dialog_color=,h240
     footer=h39,h235
@@ -130,8 +121,7 @@ blank strings and keep the comma.
 
 Let me know if you make any good colorschemes and I'll add it to the default collection.
 
-Key Bindings
-------------
+## Key Bindings
 
 You can customize any key binding by adding a setting to the `[keys]` section of
 your config file `~/.toddrc`.
@@ -146,8 +136,7 @@ You can easily append this to your config file by running:
 
 When you edit a key binding the in app help will reflect it. Hit `h` or `?` to view the help.
 
-Known Issues
-------------
+## Known Issues
 
 ### OSX
 
@@ -163,9 +152,6 @@ Known Issues
 
     export TERM=screen-256color
 
-Updates
--------
-
-
+## Updates
 
 See the [log here](https://github.com/laktak/todd/commits/master)

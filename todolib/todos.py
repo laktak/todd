@@ -97,14 +97,17 @@ class Todos:
     def all_projects(self):
         return sorted(set([project for todo in self.todo_items for project in todo.projects]))
 
-    def get_items_sorted(self):
+    def get_items_sorted(self, sort_by):
         def due_prio(todo):
             res = todo.due_date + todo.raw
             if not res: res = "z"
             if todo.is_done(): res = "z" + res
             return res
+        def prio(todo):
+            return todo.raw
 
-        return sorted(self.todo_items, key=due_prio)
+        if sort_by == "due": return sorted(self.todo_items, key=due_prio)
+        elif sort_by == "prio": return sorted(self.todo_items, key=prio)
 
     @staticmethod
     def filter_due(items, date):
@@ -119,8 +122,8 @@ class Todos:
         return [t for t in items if t.is_done()] if items else []
 
     @staticmethod
-    def filter_contexts_and_projects(items, contexts, projects):
-        return [item for item in items if set(projects) & set(item.projects) or set(contexts) & set(item.contexts)]
+    def filter_context(items, context):
+        return [item for item in items if context in item.contexts]
 
     @staticmethod
     def search(items, search_string):

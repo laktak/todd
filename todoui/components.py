@@ -1,4 +1,5 @@
 import urwid
+from todolib.util import Util
 
 class EntryWidget(urwid.Edit):
 
@@ -31,29 +32,21 @@ class ViColumns(urwid.Columns):
 
     def __init__(self, key_bindings, widget_list, dividechars=0, focus_column=None, min_width=1, box_columns=None):
         super(ViColumns, self).__init__(widget_list, dividechars, focus_column, min_width, box_columns)
-        command_map = urwid.command_map.copy()
 
-        keys = key_bindings.getKeyBinding('right')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_RIGHT
-        keys = key_bindings.getKeyBinding('left')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_LEFT
-
-        self._command_map = command_map
+        self._command_map = Util.define_keys(urwid.command_map.copy(), key_bindings, [
+            ('down', urwid.CURSOR_DOWN),
+            ('up', urwid.CURSOR_UP),
+        ])
 
 
 class ViListBox(urwid.ListBox):
 
     def __init__(self, key_bindings, *args, **kwargs):
         super(ViListBox, self).__init__(*args, **kwargs)
-        command_map = urwid.command_map.copy()
 
-        keys = key_bindings.getKeyBinding('down')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_DOWN
-        keys = key_bindings.getKeyBinding('up')
-        for key in keys:
-            command_map[key] = urwid.CURSOR_UP
-
-        self._command_map = command_map
+        self._command_map = Util.define_keys(urwid.command_map.copy(), key_bindings, [
+            ('down', urwid.CURSOR_DOWN),
+            ('up', urwid.CURSOR_UP),
+            ('top', urwid.CURSOR_MAX_LEFT),
+            ('bottom', urwid.CURSOR_MAX_RIGHT),
+        ])

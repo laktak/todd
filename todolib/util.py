@@ -34,3 +34,11 @@ class Util:
         value = int(value)
         mod = -1 if prefix == '-' else 1
         return Util.date_add_interval(date, itype, value * mod)
+
+    @staticmethod
+    def define_keys(command_map, key_bindings, mappings):
+        for (name, final) in mappings:
+            keys = key_bindings.getKeyBinding(name)
+            for key in keys:
+                command_map[key] = final
+        return command_map
