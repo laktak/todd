@@ -4,24 +4,7 @@
 todd
 ====
 
-An interactive terminal based todo.txt file editor with an
-interface similar to [mutt](http://www.mutt.org/). Based on
-todotxt-machine <https://github.com/AnthonyDiGirolamo/todotxt-machine>.
-
-Requirements
-------------
-
-Python 3.6 with readline support.
-
-Documentation
--------------
-
-The documentation for ``todd`` is `available on github <https://github.com/laktak/todd>`_.
-
-License
--------
-
-``todd`` is licensed under a GPLv3 license, see ``LICENSE`` for details.
+*todd* is an interactive console TODO manager with VI key bindings.
 """
 
 from setuptools import setup, find_packages
@@ -57,13 +40,13 @@ setup(name=NAME,
       author="Christian Zangl",
       author_email="laktak@cdak.net",
       url="https://github.com/laktak/todd",
-      description="An interactive terminal based todo.txt file editor with an interface similar to mutt",
+      description="An interactive terminal based todo.txt file editor",
       long_description=long_description,
       keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
       packages=find_packages(exclude=["todolib/test*"]),
       include_package_data=True,
       entry_points={
-          'console_scripts': ['todd = todoui.cli:main']
+          "console_scripts": ["todd = todoui.cli:main"]
       },
       classifiers=[
           "Development Status :: 4 - Beta",
@@ -76,6 +59,6 @@ setup(name=NAME,
           "Programming Language :: Python :: 3.6",
           "Topic :: Office/Business :: Scheduling",
       ],
-      install_requires=['setuptools', 'docopt>=0.6.2', 'urwid>=1.2.1'],
-      tests_require=['pytest'],
-      cmdclass={'test': PyTest})
+      install_requires=["setuptools", "docopt>=0.6.2", "urwid>=1.2.1"],
+      tests_require=["pytest"],
+      cmdclass={"test": PyTest})

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 """todd
 
@@ -25,10 +24,8 @@ from docopt import docopt
 
 import todolib
 import todoui
-from todolib.todos import Todos
-from todoui.main_ui import MainUI
-from todoui.colorscheme import ColorScheme
-from todoui.keys import KeyBindings
+from todolib import Todos
+from todoui import MainUI, ColorScheme, KeyBindings
 
 
 # Import the correct version of configparser
@@ -64,8 +61,8 @@ timer = threading.Timer(30.0, autosave)
 
 
 def exit_with_error(message):
-    sys.stderr.write(message.strip(' \n') + '\n')
-    print(__doc__.split('\n\n')[1])
+    sys.stderr.write(message.strip(" \n") + "\n")
+    print(__doc__.split("\n\n")[1])
     exit(1)
 
 
@@ -80,7 +77,7 @@ def get_real_path(filename, description):
         directory = os.path.dirname(file_path)
         if os.path.isdir(directory):
             # directory exists, but no todo.txt file - create an empty one
-            open(file_path, 'a').close()
+            open(file_path, "a").close()
         else:
             exit_with_error("ERROR: The directory: '{0}' does not exist\n\nPlease create the directory or specify a different\n{0} file on the command line.".format(directory, description))
 
@@ -90,8 +87,8 @@ def get_real_path(filename, description):
 def get_boolean_config_option(cfg, section, option, default=False):
     value = dict(cfg.items(section)).get(option, default)
     if (type(value) != bool and
-        (str(value).lower() == 'true' or
-         str(value).lower() == '1')):
+        (str(value).lower() == "true" or
+         str(value).lower() == "1")):
         value = True
     else:
         # If present but is not True or 1
@@ -104,54 +101,49 @@ def main():
 
     # Parse command line
     arguments = docopt(__doc__, version=todolib.version)
-    # pp(arguments) ; exit(0)
-
-    # Validate readline editing mode option (docopt doesn't handle this)
-    # if arguments['--readline-editing-mode'] not in ['vi', 'emacs']:
-    #     exit_with_error("--readline-editing-mode must be set to either vi or emacs\n")
 
     # Parse config file
     cfg = config_parser_module.ConfigParser(allow_no_value=True)
-    cfg.add_section('keys')
+    cfg.add_section("keys")
 
-    if arguments['--show-default-bindings']:
+    if arguments["--show-default-bindings"]:
         d = {k: ", ".join(v) for k, v in KeyBindings({}).key_bindings.items()}
-        cfg._sections['keys'] = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+        cfg._sections["keys"] = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
         cfg.write(sys.stdout)
         exit(0)
 
-    cfg.add_section('settings')
-    cfg.read(os.path.expanduser(arguments['--config']))
+    cfg.add_section("settings")
+    cfg.read(os.path.expanduser(arguments["--config"]))
 
     # Load keybindings specified in the [keys] section of the config file
-    keyBindings = KeyBindings(dict(cfg.items('keys')))
+    keyBindings = KeyBindings(dict(cfg.items("keys")))
 
     # load the colorscheme defined in the user config, else load the default scheme
-    colorscheme = ColorScheme(dict(cfg.items('settings')).get('colorscheme', 'default'), cfg)
+    colorscheme = ColorScheme(dict(cfg.items("settings")).get("colorscheme", "default"), cfg)
 
     # Get auto-saving setting (defaults to False)
     global enable_autosave
-    enable_autosave = get_boolean_config_option(cfg, 'settings', 'auto-save', default=False)
+    enable_autosave = get_boolean_config_option(cfg, "settings", "auto-save", default=False)
 
     # Load the todo.txt file specified in the [settings] section of the config file
     # a todo.txt file on the command line takes precedence
-    todotxt_file = dict(cfg.items('settings')).get('file', arguments['TODOFILE'])
-    if arguments['TODOFILE']:
-        todotxt_file = arguments['TODOFILE']
+    todotxt_file = dict(cfg.items("settings")).get("file", arguments["TODOFILE"])
+    if arguments["TODOFILE"]:
+        todotxt_file = arguments["TODOFILE"]
 
     if todotxt_file is None:
-        exit_with_error("ERROR: No todo file specified. Either specify one as an argument on the command line or set it in your configuration file ({0}).".format(arguments['--config']))
+        exit_with_error("ERROR: No todo file specified. Either specify one as an argument on the command line or set it in your configuration file ({0}).".format(arguments["--config"]))
 
     # Load the done.txt file specified in the [settings] section of the config file
     # a done.txt file on the command line takes precedence
-    donetxt_file = dict(cfg.items('settings')).get('archive', arguments['DONEFILE'])
-    if arguments['DONEFILE']:
-        donetxt_file = arguments['DONEFILE']
+    donetxt_file = dict(cfg.items("settings")).get("archive", arguments["DONEFILE"])
+    if arguments["DONEFILE"]:
+        donetxt_file = arguments["DONEFILE"]
 
-    todotxt_file_path = get_real_path(todotxt_file, 'todo.txt')
+    todotxt_file_path = get_real_path(todotxt_file, "todo.txt")
 
     if donetxt_file is not None:
-        donetxt_file_path = get_real_path(donetxt_file, 'done.txt')
+        donetxt_file_path = get_real_path(donetxt_file, "done.txt")
     else:
         donetxt_file_path = None
 
@@ -159,11 +151,11 @@ def main():
         with open(todotxt_file_path, "r") as todotxt_file:
             todos_raw = todotxt_file.readlines()
     except:
-        exit_with_error("ERROR: unable to open {0}\n\nEither specify one as an argument on the command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments['--config']))
+        exit_with_error("ERROR: unable to open {0}\n\nEither specify one as an argument on the command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments["--config"]))
 
     todos = Todos(todos_raw, todotxt_file_path, donetxt_file_path)
 
-    enable_word_wrap = get_boolean_config_option(cfg, 'settings', 'enable-word-wrap')
+    enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")
 
     global view
     view = MainUI(todos, keyBindings, colorscheme)
@@ -186,5 +178,5 @@ def main():
     exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

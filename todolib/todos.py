@@ -1,39 +1,34 @@
-#!/usr/bin/env python
-# coding=utf-8
+import os
 import re
 import random
-from todolib.todo import Todo
-
+from todolib import Todo
 
 class Todos:
     """Todo items"""
 
-    def __init__(self, todo_items, file_path, archive_path):
+    def __init__(self, todo_items, file_path, archive_path=None):
         self.file_path = file_path
-        self.archive_path = archive_path
+        if archive_path: self.archive_path = archive_path
+        else: self.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
         self.update(todo_items)
 
     def reload_from_file(self):
-        with open(self.file_path, "r") as todotxt_file:
+        with open(self.file_path, "r", encoding="utf-8") as todotxt_file:
             self.update(todotxt_file.readlines())
 
     def save(self):
-        with open(self.file_path, "w") as todotxt_file:
+        with open(self.file_path, "w", encoding="utf-8") as todotxt_file:
             for t in self.todo_items:
-                todotxt_file.write(t.raw + '\n')
+                todotxt_file.write(t.raw + "\n")
 
     def archive_done(self):
-        if self.archive_path is not None:
-            with open(self.archive_path, "a") as donetxt_file:
-                done = Todos.filter_done(self.todo_items)
-                for t in done:
-                    donetxt_file.write(t.raw + '\n')
-                    self.todo_items.remove(t)
+        with open(self.archive_path, "a", encoding="utf-8") as donetxt_file:
+            done = Todos.filter_done(self.todo_items)
+            for t in done:
+                donetxt_file.write(t.raw + "\n")
+                self.todo_items.remove(t)
 
-            self.save()
-            return True
-
-        return False
+        self.save()
 
     def update(self, todo_items):
         self.parse_raw_entries(todo_items)
@@ -126,29 +121,25 @@ class Todos:
         return [item for item in items if context in item.contexts]
 
     @staticmethod
-    def search(items, search_string):
-        search_string = re.escape(search_string)
-        # print(search_string)
-        ss = []
-        substrings = search_string.split("\\")
-        for index, substring in enumerate(substrings):
-            s = ".*?".join(substring)
-            # s.replace(" .*?", " ")
-            if 0 < index < len(substrings) - 1:
-                s += ".*?"
-            ss.append(s)
-        # print(repr(ss))
-        search_string_regex = '^.*('
-        search_string_regex += "\\".join(ss)
-        search_string_regex += ').*'
-        # print(search_string_regex)
+    def prep_search(search_string):
+        search_list = [x for x in [x.strip() for x in search_string.split(" ")] if x != ""]
+        if not search_list: return None
+        exp1 = "".join(["(?=.*("+re.escape(item)+"))" for item in search_list])
+        exp2 = "(" + "|".join([re.escape(item) for item in search_list]) + ")"
+        return (re.compile(exp1, re.IGNORECASE), re.compile(exp2, re.IGNORECASE))
 
-        r = re.compile(search_string_regex, re.IGNORECASE)
-        results = []
-        for t in items:
-            match = r.search(t.raw)
-            if match:
-                t.search_matches = match.groups()
-                results.append(t)
-        return results
+    @staticmethod
+    def search(search, items):
+        if not search: return items
+        return [item for item in items if search[0].search(item.raw)]
 
+    @staticmethod
+    def get_search_highlight(search, text):
+        try:
+            color_list = search[1].split(text)
+            matches = search[0].search(text).groups()
+            for index, w in enumerate(color_list):
+                if w in matches: color_list[index] = ("search_match", w)
+            return color_list
+        except:
+            return text

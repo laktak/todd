@@ -13,7 +13,7 @@ elif sys.version_info[0] < 3:
 class ColorScheme:
 
     def __init__(self, name, user_config):
-        self.built_in_colors_directory = os.path.realpath(os.path.expanduser(os.path.dirname(__file__) + '/colors'))
+        self.built_in_colors_directory = os.path.realpath(os.path.expanduser(os.path.dirname(__file__) + "/colors"))
         self.user_config = user_config
         self.load_colors(name)
 
@@ -40,17 +40,17 @@ class ColorScheme:
 
         # Split foreground and background values
         for key, value in self.colors.items():
-            color_strings = value.split(',')
+            color_strings = value.split(",")
             if len(color_strings) == 1:
-                color_strings.append('')
-            self.colors[key] = {'fg': color_strings[0], 'bg': color_strings[1]}
+                color_strings.append("")
+            self.colors[key] = {"fg": color_strings[0], "bg": color_strings[1]}
 
         # Create Selected attributes using the selected_background_color
-        selected_background_color = self.colors['selected']['bg']
-        dialog_color = self.colors['dialog_color']['bg']
+        selected_background_color = self.colors["selected"]["bg"]
+        dialog_color = self.colors["dialog_color"]["bg"]
         for key, value in list(self.colors.items()):
-            if key not in ['selected', 'dialog_color', 'dialog_button_color']:
-                self.colors[key + '_selected'] = {'fg': self.colors[key]['fg'], 'bg': selected_background_color}
-                self.colors[key + '_dialog_color'] = {'fg': self.colors[key]['fg'], 'bg': dialog_color}
-                self.focus_map[key] = key + '_selected'
-                self.dialog_focus_map[key] = key + '_dialog_color'
+            if key not in ["selected", "dialog_color", "dialog_button_color"]:
+                self.colors[key + "_selected"] = {"fg": self.colors[key]["fg"], "bg": selected_background_color}
+                self.colors[key + "_dialog_color"] = {"fg": self.colors[key]["fg"], "bg": dialog_color}
+                self.focus_map[key] = key + "_selected"
+                self.dialog_focus_map[key] = key + "_dialog_color"

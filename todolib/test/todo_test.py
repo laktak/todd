@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# coding=utf-8
 import pytest
 from datetime import date
 from .. import todo
@@ -15,7 +13,7 @@ def todos():
         "(B) Schedule Goodwill pickup +GarageSale @phone",
         "Unpack the guest bedroom +Unpacking due:2013-10-20",
         "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"], './todo.txt', './archive.txt')
+        "x 2013-10-01 @GroceryStore Eskimo pies"], "./todo.txt", "./archive.txt")
 
 
 @pytest.fixture
@@ -172,27 +170,6 @@ def test_todos_sorted_reverese(todos):
         "(B) Schedule Goodwill pickup +GarageSale @phone",
         "(A) Thank Mom for the dinner @phone"]
     assert [todo.raw_index for todo in todos.todo_items] == [4, 2, 3, 1, 0]
-
-
-# def test_todos_filter_context(todos):
-#     assert [t.raw for t in todos.filter_context("@phone")] == [
-#         "(A) Thank Mom for the dinner @phone",
-#         "(B) Schedule Goodwill pickup +GarageSale @phone"]
-#     assert [t.raw for t in todos.filter_context("@GroceryStore")] == [
-#         "x 2013-10-01 @GroceryStore Eskimo pies"]
-
-
-# def test_todos_filter_project(todos):
-#     assert [t.raw for t in todos.filter_project("+GarageSale")] == [
-#         "(B) Schedule Goodwill pickup +GarageSale @phone",
-#         "2013-10-19 Post signs around the neighborhood +GarageSale"]
-#     assert [t.raw for t in todos.filter_project("+Unpacking")] == [
-#         "Unpack the guest bedroom +Unpacking due:2013-10-20"]
-
-
-def test_todo_highlight(todos):
-    todos.parse_raw_entries(["2013-10-25 This is a +Very @cool test"])
-    assert todos.todo_items[0].colored == ('plain', ['', ('creation_date', '2013-10-25'), ' This is a ', ('project', '+Very'), ' ', ('context', '@cool'), ' test'])
 
 
 def test_todos_filter_context_and_project(todos):
@@ -405,13 +382,13 @@ def test_todos_search(todos):
         "Unpack the guest bedroom +Unpacking due:2013-10-20",
         "2013-10-19 Post signs around the neighborhood +GarageSale"]
     # one match per line!
-    assert [t.search_matches for t in todos.search("the")] == [('the',), ('the',), ('the',)]
+    assert [t.search_matches for t in todos.search("the")] == [("the",), ("the",), ("the",)]
     assert [t.raw for t in todos.search("te")] == [
         "(A) Thank Mom for the dinner @phone",
         "Unpack the guest bedroom +Unpacking due:2013-10-20",
         "2013-10-19 Post signs around the neighborhood +GarageSale",
         "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [t.search_matches for t in todos.search("te")] == [('the',), ('t be',), ('the',), ('tore',)]
+    assert [t.search_matches for t in todos.search("te")] == [("the",), ("t be",), ("the",), ("tore",)]
 
     assert todos.search(".*") == []
     assert todos.search("{b}") == []
@@ -424,23 +401,23 @@ def test_todos_search(todos):
         "x 2013-10-01 @GroceryStore Eskimo pies"])
 
     assert [t.raw for t in todos.search(".*")] == ["(A) 1999-12-24 .Thank* Mom for the .dinner* @phone"]
-    assert [t.search_matches for t in todos.search(".*")] == [('.dinner*',)]
+    assert [t.search_matches for t in todos.search(".*")] == [(".dinner*",)]
     assert [t.raw for t in todos.search("{b}")] == ["Unpack the guest {bedroom} +Unpacking due:2013-10-20"]
-    assert [t.search_matches for t in todos.search("{b}")] == [('{bedroom}',)]
+    assert [t.search_matches for t in todos.search("{b}")] == [("{bedroom}",)]
 
 
 def test_change_priority(todos):
-    todos[0].change_priority('F')
+    todos[0].change_priority("F")
     assert todos[0].raw == "(F) Thank Mom for the dinner @phone"
-    todos[1].change_priority('')
+    todos[1].change_priority("")
     assert todos[1].raw == "Schedule Goodwill pickup +GarageSale @phone"
-    todos[2].change_priority('C')
+    todos[2].change_priority("C")
     assert todos[2].raw == "(C) Unpack the guest bedroom +Unpacking due:2013-10-20"
-    todos[3].change_priority('A')
+    todos[3].change_priority("A")
     assert todos[3].raw == "(A) 2013-10-19 Post signs around the neighborhood +GarageSale"
-    todos[4].change_priority('B')
+    todos[4].change_priority("B")
     assert todos[4].raw == "x 2013-10-01 (B) @GroceryStore Eskimo pies"
-    todos[4].change_priority('C')
+    todos[4].change_priority("C")
     assert todos[4].raw == "x 2013-10-01 (C) @GroceryStore Eskimo pies"
-    todos[4].change_priority('')
+    todos[4].change_priority("")
     assert todos[4].raw == "x 2013-10-01 @GroceryStore Eskimo pies"

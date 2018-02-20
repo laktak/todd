@@ -1,17 +1,17 @@
 import urwid
 import collections
-from todoui.components import ViListBox
+from todoui import ViListBox
 
 class MainHelp:
 
     def create_help_panel(key_bindings):
 
         key_column_width = 12
-        header_highlight = 'plain_selected'
+        header_highlight = "plain_selected"
         items = (
-        [urwid.Text('Key Bindings', align='center')] +
-
-        # [urwid.Divider()] +
+        [urwid.Divider()] +
+        [urwid.Text("Key Bindings", align="center")] +
+        [urwid.Divider()] +
 
         [urwid.AttrWrap(urwid.Text("""
 General
@@ -23,12 +23,14 @@ General
 {2} - toggle word wrap
 {3} - save current todo file
 {4} - reload the todo file (discarding changes)
+{5} - archive done items to done.txt
 """.format(
             key_bindings["toggle-help"].ljust(key_column_width),
             key_bindings["quit"].ljust(key_column_width),
             key_bindings["toggle-wrapping"].ljust(key_column_width),
             key_bindings["save"].ljust(key_column_width),
             key_bindings["reload"].ljust(key_column_width),
+            key_bindings["archive"].ljust(key_column_width),
         ))] +
 
         [urwid.AttrWrap(urwid.Text("""
@@ -45,36 +47,34 @@ Movement
 """.format(
             key_bindings["down"].ljust(key_column_width),
             key_bindings["up"].ljust(key_column_width),
-            key_bindings["top"].ljust(key_column_width),
-            key_bindings["bottom"].ljust(key_column_width),
+            key_bindings["home"].ljust(key_column_width),
+            key_bindings["end"].ljust(key_column_width),
             key_bindings["left"].ljust(key_column_width),
             key_bindings["right"].ljust(key_column_width),
         ))] +
 
         [urwid.AttrWrap(urwid.Text("""
-Manipulating Todo Items
+Todo Items
 """.strip()), header_highlight)] +
 
         [urwid.Text("""
-{0} - mark / unmark selected item done
-{1} - archive done items to done.txt (if specified)
-{2} - add a new todo item
-{3} - edit the selected item
-{4} - delete the selected item
-{5} - change due (add)
-{6} - change due (subtract)
-{7} - higher priority
-{8} - lower priority
+{0} - add a new todo item
+{1} - edit the selected item
+{2} - higher priority
+{3} - lower priority
+{4} - mark / unmark selected item done
+{5} - delete the selected item
+{6} - change due (add)
+{7} - change due (subtract)
 """.format(
-            key_bindings["toggle-done"].ljust(key_column_width),
-            key_bindings["archive"].ljust(key_column_width),
             key_bindings["new"].ljust(key_column_width),
             key_bindings["edit"].ljust(key_column_width),
+            key_bindings["priority-lower"].ljust(key_column_width),
+            key_bindings["priority-higher"].ljust(key_column_width),
+            key_bindings["toggle-done"].ljust(key_column_width),
             key_bindings["delete"].ljust(key_column_width),
             key_bindings["add-due"].ljust(key_column_width),
             key_bindings["subtract-due"].ljust(key_column_width),
-            key_bindings["priority-lower"].ljust(key_column_width),
-            key_bindings["priority-higher"].ljust(key_column_width),
         ))] +
 
         [urwid.AttrWrap(urwid.Text("""
@@ -108,29 +108,22 @@ While Editing a Todo
         ))] +
 
         [urwid.AttrWrap(urwid.Text("""
-Sorting
+Search & Sort
 """.strip()), header_highlight)] +
 
         [urwid.Text("""
-{0} - toggle sort order
+{0} - switch context
+{1} - start search
+{2} - clear search
+{3} - toggle sort order
 """.format(
-            key_bindings["toggle-sort-order"].ljust(key_column_width),
-        ))] +
-        [urwid.AttrWrap(urwid.Text("""
-Searching
-""".strip()), header_highlight)] +
-
-        [urwid.Text("""
-{0} - start search
-{1} - clear search
-{2} - switch context
-""".format(
+            key_bindings["switch-context"].ljust(key_column_width),
             key_bindings["search"].ljust(key_column_width),
             key_bindings["search-clear"].ljust(key_column_width),
-            key_bindings["toggle-context"].ljust(key_column_width),
+            key_bindings["toggle-sort-order"].ljust(key_column_width),
         ))])
 
         return urwid.AttrMap(
             urwid.Padding(
                 ViListBox(key_bindings, items),
-                left=1, right=1, min_width=10), 'dialog_color')
+                left=1, right=1, min_width=10), "dialog_color")
