@@ -1,5 +1,7 @@
 import os
 import re
+import watchdog.events
+import watchdog.observers
 from todolib import Todo
 
 
@@ -18,7 +20,11 @@ class Todos:
         todos.reload()
         return todos
 
+    def has_file_changed(self):
+        return self.file_m != os.path.getmtime(self.file_path)
+
     def reload(self):
+        self.file_m = os.path.getmtime(self.file_path)
         with open(self.file_path, "r", encoding="utf-8") as todotxt_file:
             self.set_items(todotxt_file.readlines())
 
@@ -26,6 +32,23 @@ class Todos:
         with open(self.file_path, "w", encoding="utf-8") as todotxt_file:
             for t in self._items:
                 todotxt_file.write(t.raw + "\n")
+        self.file_m = os.path.getmtime(self.file_path)
+
+    def watch(self, handler):
+        path = self.file_path
+        class Watcher(watchdog.events.FileSystemEventHandler):
+            def on_modified(self, event):
+                if (not event.is_directory and
+                    os.path.realpath(event.src_path) == os.path.realpath(path)):
+                    handler()
+        self.observer = watchdog.observers.Observer()
+        self.observer.schedule(Watcher(), os.path.dirname(path))
+        self.observer.start()
+
+    def stop_watch(self):
+        self.observer.stop()
+        self.observer.join()
+        self.observer = None
 
     def archive_done(self):
         with open(self.archive_path, "a", encoding="utf-8") as donetxt_file:

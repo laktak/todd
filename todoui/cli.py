@@ -17,8 +17,6 @@ Options:
 
 import sys
 import os
-import random
-import threading
 from collections import OrderedDict
 from docopt import docopt
 
@@ -34,29 +32,6 @@ if sys.version_info[0] >= 3:
 elif sys.version_info[0] < 3:
     import ConfigParser
     config_parser_module = ConfigParser
-
-
-autosave_lock = threading.Lock()
-
-
-def autosave():
-    if not enable_autosave:
-        return
-
-    # print "autosaving..."
-    with autosave_lock:
-        # view.save_todos() # TODO: Saved message isn't displayed, need to force redraw urwid ui?
-        view.todos.save()
-
-    # Check the flag once again, as the flag may have been set
-    # after the last check but before this statement is executed.
-    if enable_autosave:
-        global timer
-        timer = threading.Timer(30.0, autosave)
-        timer.start()
-
-
-timer = threading.Timer(30.0, autosave)
 
 
 def exit_with_error(message):
@@ -100,7 +75,6 @@ def get_boolean_config_option(cfg, section, option, default=False):
 
 
 def main():
-    random.seed()
 
     # Parse command line
     arguments = docopt(__doc__, version=todolib.version)
@@ -124,9 +98,8 @@ def main():
     # load the colorscheme defined in the user config, else load the default scheme
     colorscheme = ColorScheme(dict(cfg.items("settings")).get("colorscheme", "default"), cfg)
 
-    # Get auto-saving setting (defaults to False)
-    global enable_autosave
-    enable_autosave = get_boolean_config_option(cfg, "settings", "auto-save", default=False)
+    # Get auto-saving setting (defaults to True)
+    enable_autosave = get_boolean_config_option(cfg, "settings", "auto-save", default=True)
 
     # Load the todo.txt file specified in the [settings] section of the config file
     # a todo.txt file on the command line takes precedence
@@ -163,23 +136,11 @@ def main():
 
     enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")
 
-    global view
     view = MainUI(todos, keyBindings, colorscheme)
-
-    timer.start()
-
     view.main(enable_word_wrap)  # start up the urwid UI event loop
 
-    # UI is now shut down
-
-    # Shut down the auto-saving thread.
-    enable_autosave = False
-    timer.cancel()
-
     # Final save
-    with autosave_lock:
-        # print("Writing: {0}".format(todotxt_file_path))
-        view.todos.save()
+    view.todos.save()
 
     exit(0)
 

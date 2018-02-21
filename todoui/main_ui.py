@@ -1,3 +1,4 @@
+import os
 import urwid
 import collections
 from todolib import Todo, Todos, Util
@@ -134,10 +135,14 @@ class MainUI:
         self.fill_listbox()
         self.listbox.move_top()
 
-    def reload_todos_from_file(self, button=None):
+    def reload_todos_from_file(self):
         self.todos.reload()
         self.fill_listbox()
         self.update_header("Reloaded")
+
+    def file_updated(self, dummy):
+        if self.todos.has_file_changed():
+            self.reload_todos_from_file()
 
     def todo_list_updated(self):
         self.update_header()
@@ -308,4 +313,10 @@ class MainUI:
 
         self.fill_listbox()
 
+        pipe = self.loop.watch_pipe(self.file_updated)
+        def piper():
+            os.write(pipe, b'updated') # trigger file_updated
+
+        self.todos.watch(piper)
         self.loop.run()
+        self.todos.stop_watch()
