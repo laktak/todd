@@ -23,7 +23,6 @@ from collections import OrderedDict
 from docopt import docopt
 
 import todolib
-import todoui
 from todolib import Todos
 from todoui import MainUI, ColorScheme, KeyBindings
 
@@ -79,7 +78,11 @@ def get_real_path(filename, description):
             # directory exists, but no todo.txt file - create an empty one
             open(file_path, "a").close()
         else:
-            exit_with_error("ERROR: The directory: '{0}' does not exist\n\nPlease create the directory or specify a different\n{0} file on the command line.".format(directory, description))
+            exit_with_error(
+                "ERROR: The directory: '{0}' does not exist\n\n" +
+                "Please create the directory or specify a different\n" +
+                "{0} file on the command line.".format(directory, description)
+            )
 
     return file_path
 
@@ -132,7 +135,10 @@ def main():
         todotxt_file = arguments["TODOFILE"]
 
     if todotxt_file is None:
-        exit_with_error("ERROR: No todo file specified. Either specify one as an argument on the command line or set it in your configuration file ({0}).".format(arguments["--config"]))
+        exit_with_error(
+            "ERROR: No todo file specified. Either specify one as an argument " +
+            " on the command line or set it in your configuration file ({0}).".format(arguments["--config"])
+        )
 
     # Load the done.txt file specified in the [settings] section of the config file
     # a done.txt file on the command line takes precedence
@@ -148,12 +154,12 @@ def main():
         donetxt_file_path = None
 
     try:
-        with open(todotxt_file_path, "r") as todotxt_file:
-            todos_raw = todotxt_file.readlines()
-    except:
-        exit_with_error("ERROR: unable to open {0}\n\nEither specify one as an argument on the command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments["--config"]))
-
-    todos = Todos(todos_raw, todotxt_file_path, donetxt_file_path)
+        todos = Todos.open_file(todotxt_file_path, donetxt_file_path)
+    except Exception:
+        exit_with_error(
+            "ERROR: unable to open {0}\n\nEither specify one as an argument on the " +
+            "command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments["--config"])
+        )
 
     enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")
 

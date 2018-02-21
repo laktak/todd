@@ -1,62 +1,66 @@
 import pytest
 from datetime import date
-from .. import todo
+from todolib import *
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4).pprint
 
+TODO_COWS="Buy some cows +project-x @farm"
+TODO_FLUX="(A) Build a flux capacitor +future @weekend"
+TODO_TRASH="(F) Take out the trash @home due:2018-02-21"
+TODO_DONE="x 1999-01-07 Book a ticket to mars +project-x +future"
+TODO_PLAN="Plan our summer vacation +family @weekend"
 
 @pytest.fixture
 def todos():
-    return todo.Todos([
-        "(A) Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"], "./todo.txt", "./archive.txt")
-
+    return Todos([
+        TODO_COWS,
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN,
+    ])
 
 @pytest.fixture
 def today():
     return date.today()
 
-
 def test_todos_init(todos):
     assert len(todos) == 5
-    assert len(todos.todo_items) == 5
-
+    assert len(todos.get_items()) == 5
 
 def test_todos_parse_entries(todos):
-    todo = todos.todo_items[0]
-    assert todo.raw == "(A) Thank Mom for the dinner @phone"
-    assert todo.contexts == ["@phone"]
-    assert todo.projects == []
+    todo = todos.get_items()[0]
+    assert todo.raw == TODO_COWS
+    assert todo.contexts == ["@farm"]
+    assert todo.projects == ["+project-x"]
+    assert todo.priority == ""
+
+    todo = todos.get_items()[1]
+    assert todo.raw == TODO_FLUX
+    assert todo.contexts == ["@weekend"]
+    assert todo.projects == ["+future"]
     assert todo.priority == "A"
 
-    todo = todos.todo_items[1]
-    assert todo.raw == "(B) Schedule Goodwill pickup +GarageSale @phone"
-    assert todo.contexts == ["@phone"]
-    assert todo.projects == ["+GarageSale"]
-    assert todo.priority == "B"
-
-    todo = todos.todo_items[2]
-    assert todo.raw == "Unpack the guest bedroom +Unpacking due:2013-10-20"
-    assert todo.contexts == []
-    assert todo.projects == ["+Unpacking"]
-    assert todo.due_date == "2013-10-20"
-
-    todo = todos.todo_items[3]
-    assert todo.raw == "2013-10-19 Post signs around the neighborhood +GarageSale"
-    assert todo.contexts == []
-    assert todo.projects == ["+GarageSale"]
-    assert todo.creation_date == "2013-10-19"
-
-    todo = todos.todo_items[4]
-    assert todo.raw == "x 2013-10-01 @GroceryStore Eskimo pies"
-    assert todo.contexts == ["@GroceryStore"]
+    todo = todos.get_items()[2]
+    assert todo.raw == TODO_TRASH
+    assert todo.contexts == ["@home"]
     assert todo.projects == []
-    assert todo.done_date == "2013-10-01"
+    assert todo.due_date == "2018-02-21"
+    assert todo.priority == "F"
 
+    todo = todos.get_items()[3]
+    assert todo.raw == TODO_DONE
+    assert todo.contexts == []
+    assert todo.projects == ["+future", "+project-x"]
+    assert todo.done_date == "1999-01-07"
+    assert todo.priority == ""
+
+    todo = todos.get_items()[4]
+    assert todo.raw == TODO_PLAN
+    assert todo.contexts == ["@weekend"]
+    assert todo.projects == ["+family"]
+    assert todo.priority == ""
 
 def test_todos_iterable(todos):
     for todo in todos:
@@ -64,360 +68,166 @@ def test_todos_iterable(todos):
     for todo in todos:
         assert todo.raw != ""
 
-
-def test_todos_contexts(todos):
-    assert "@phone" in todos.contexts("(A) Thank Mom for the meatballs @phone")
-    assert ["@home", "@phone"] == todos.contexts("Make phonecalls from home @phone @home")
-
-
-def test_todos_projects(todos):
-    assert "+GarageSale" in todos.projects("(B) Schedule Goodwill pickup +GarageSale @phone")
-    assert ["+deck", "+portch"] == todos.projects("Finish outdoor projects +portch +deck")
-
-
 def test_context_project_regex(todos):
-    todos.update([
-        "(A) 1999-12-24 Thank Mom for the dinner @phone @email mom@email.com",
-        "(B) Schedule Goodwill pickup +GarageSale NotA+Project @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
+    todos.set_items([
+        TODO_COWS + " foo@email.com @email",
+        TODO_FLUX + " NotA+Project +project-y",
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN])
     todo = todos[0]
-    assert todo.raw == "(A) 1999-12-24 Thank Mom for the dinner @phone @email mom@email.com"
-    assert todo.contexts == ["@email", "@phone"]
-    assert todo.projects == []
-    assert todo.priority == "A"
+    assert todo.contexts == ["@email", "@farm"]
+    assert todo.projects == ["+project-x"]
     todo = todos[1]
-    assert todo.raw == "(B) Schedule Goodwill pickup +GarageSale NotA+Project @phone"
-    assert todo.contexts == ["@phone"]
-    assert todo.projects == ["+GarageSale"]
-    assert todo.priority == "B"
-
+    assert todo.contexts == ["@weekend"]
+    assert todo.projects == ["+future", "+project-y"]
 
 def test_todos_all_contexts(todos):
-    assert ["@GroceryStore", "@phone"] == todos.all_contexts()
-
+    assert ["@farm", "@home", "@weekend"] == todos.all_contexts()
 
 def test_todos_all_projects(todos):
-    assert ["+GarageSale", "+Unpacking"] == todos.all_projects()
-
+    assert ["+family", "+future", "+project-x"] == todos.all_projects()
 
 def test_todos_done_date(todos):
-    assert todos.done_date("2011-03-02 Document +TodoTxt task format") == ""
-    assert todos.done_date("(A) 2011-03-02 Document +TodoTxt task format") == ""
-    assert todos.done_date("x 2012-03-03 2011-03-02 Document +TodoTxt task format") == "2012-03-03"
-    assert todos.done_date("x 2012-03-03 (A) 2011-03-02 Document +TodoTxt task format") == "2012-03-03"
-
+    assert Todo.scan_done_date(TODO_COWS) == ""
+    assert Todo.scan_done_date(TODO_FLUX) == ""
+    assert Todo.scan_done_date(TODO_DONE) == "1999-01-07"
 
 def test_todos_creation_date(todos):
-    assert todos.creation_date("2011-03-02 Document +TodoTxt task format") == "2011-03-02"
-    assert todos.creation_date("(A) 2011-03-02 Document +TodoTxt task format") == "2011-03-02"
-    assert todos.creation_date("x 2012-03-03 2011-03-02 Document +TodoTxt task format") == "2011-03-02"
-    assert todos.creation_date("x 2012-03-03 (A) 2011-03-02 Document +TodoTxt task format") == "2011-03-02"
-
+    assert Todo.scan_creation_date("2011-03-02 " + TODO_COWS) == "2011-03-02"
 
 def test_todos_due_date(todos):
-    assert todos.due_date("2011-03-02 Document +TodoTxt task format due:2013-10-25") == "2013-10-25"
-    assert todos.due_date("2011-03-02 due:2013-10-25 Document +TodoTxt task format") == "2013-10-25"
-    # with pytest.raises(todo.NoDueDateError):
-    assert todos.due_date("2011-03-02 Document +TodoTxt task format") == ""
-
+    assert Todo.scan_due_date(TODO_TRASH) == "2018-02-21"
 
 def test_todos_priority(todos):
-    assert todos.priority("(A) Priority A") == "A"
-    assert todos.priority("(Z) Priority Z") == "Z"
-    assert todos.priority("(a) No Priority") == ""
+    assert Todo.scan_priority("(A) Priority A") == "A"
+    assert Todo.scan_priority("(Z) Priority Z") == "Z"
+    assert Todo.scan_priority("(a) No Priority") == ""
     # with pytest.raises(todo.NoPriorityError):
-    assert todos.priority("No Priority (A)") == ""
-    assert todos.priority("(A)No Priority") == ""
-    assert todos.priority("(A)->No Priority") == ""
-
+    assert Todo.scan_priority("No Priority (A)") == ""
+    assert Todo.scan_priority("(A)No Priority") == ""
+    assert Todo.scan_priority("(A)->No Priority") == ""
 
 def test_todos_sorted(todos):
-    todos.parse_raw_entries([
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "(A) Thank Mom for the dinner @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2, 3, 4]
+    todos.set_items([
+        TODO_FLUX,
+        TODO_COWS,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN,
+    ])
+    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4]
 
-    todos.sorted()
-    assert [todo.raw for todo in todos.todo_items] == [
-        "(A) Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [todo.raw_index for todo in todos.todo_items] == [1, 0, 3, 2, 4]
+    assert [todo.raw_index for todo in todos.get_items_sorted("due")] == [
+        2, 0, 1, 4, 3]
 
-    todos.sorted_raw()
-    assert [todo.raw for todo in todos.todo_items] == [
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "(A) Thank Mom for the dinner @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2, 3, 4]
+    assert [todo.raw_index for todo in todos.get_items_sorted("prio")] == [
+        0, 2, 1, 4, 3]
 
+def test_todos_filter_context(todos):
+    assert [t.raw_index for t in Todos.filter_context(todos.get_items(), "@weekend")] == [
+        1, 4]
 
-def test_todos_sorted_reverese(todos):
-    todos.sorted_reverse()
-    assert [todo.raw for todo in todos.todo_items] == [
-        "x 2013-10-01 @GroceryStore Eskimo pies",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "(A) Thank Mom for the dinner @phone"]
-    assert [todo.raw_index for todo in todos.todo_items] == [4, 2, 3, 1, 0]
-
-
-def test_todos_filter_context_and_project(todos):
-    assert [t.raw for t in todos.filter_context_and_project("@phone", "+GarageSale")] == [
-        "(B) Schedule Goodwill pickup +GarageSale @phone"]
-
-
-def test_todos_update(todos):
-    todos.update([
-        "(A) 1999-12-24 Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
+def test_todos_set_items(todos):
+    todos.set_items([
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN])
     assert [t.raw for t in todos] == [
-        "(A) 1999-12-24 Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    todos.update([
-        "x 1999-12-25 (A) 1999-12-24 Thank Mom for the dinner @phone"
-        "x 1999-11-10 (B) Schedule Goodwill pickup +GarageSale @phone"
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
-    assert [t.raw for t in todos] == [
-        "x 1999-12-25 (A) 1999-12-24 Thank Mom for the dinner @phone"
-        "x 1999-11-10 (B) Schedule Goodwill pickup +GarageSale @phone"
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN]
 
-
-def test_todos_set_done(todos):
-    today = date.today()
-    todos.update([
-        "(A) 1999-12-24 Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
+def test_todos_set_done(todos, today):
     todos[0].set_done()
     todos[1].set_done()
     assert [t.raw for t in todos] == [
-        "x {} (A) 1999-12-24 Thank Mom for the dinner @phone".format(today),
-        "x {} (B) Schedule Goodwill pickup +GarageSale @phone".format(today),
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [t.creation_date for t in todos] == [
-        "1999-12-24",
-        "",
-        "",
-        "2013-10-19",
-        ""]
-    assert [t.done_date for t in todos] == [
-        "{}".format(today),
-        "{}".format(today),
-        "",
-        "",
-        "2013-10-01"]
-    assert [t.is_done() for t in todos] == [True, True, False, False, True]
+        "x {} {}".format(today, TODO_COWS),
+        "x {} {}".format(today, TODO_FLUX),
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN]
+    assert [t.is_done() for t in todos] == [True, True, False, True, False]
     todos[1].set_done(False)
-    assert todos[1].raw == "(B) Schedule Goodwill pickup +GarageSale @phone"
+    assert todos[1].raw == TODO_FLUX
     assert todos[1].done_date == ""
-
-    assert todos[3].creation_date == "2013-10-19"
-    assert todos[3].done_date == ""
-    todos[3].set_done()
-    assert todos[3].creation_date == "2013-10-19"
-    assert todos[3].done_date == "{}".format(today)
-
 
 def test_todo_undo(todos):
-    todos.update([
-        "x 1999-12-25 (A) 1999-12-24 Thank Mom for the dinner @phone",
-        "x 1999-11-10 (B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
+    todos.set_items([
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN])
     assert todos[1].creation_date == ""
-    assert todos[1].done_date == "1999-11-10"
+    assert todos[1].done_date == "1999-01-07"
     todos[1].set_done(False)
     assert todos[1].creation_date == ""
     assert todos[1].done_date == ""
 
-    assert todos[0].creation_date == "1999-12-24"
-    assert todos[0].done_date == "1999-12-25"
-    todos[0].set_done(False)
-    assert todos[0].creation_date == "1999-12-24"
-    assert todos[0].done_date == ""
-
-
 def test_todo_is_done(todos):
-    todos.update([
-        "x 1999-12-25 (A) 1999-12-24 Thank Mom for the dinner @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x @GroceryStore Eskimo pies"])
+    todos.set_items([
+        TODO_COWS,
+        TODO_TRASH,
+        TODO_DONE,
+    ])
     assert [t.is_done() for t in todos] == [
-        True,
         False,
         False,
         True]
 
-
-def test_todo_update(todos):
-    t = todos[0]
-    t.update("(A) 2000-20-12 Thank Mom for the dinner @phone @home +GiveThanks")
-    assert t.raw == "(A) 2000-20-12 Thank Mom for the dinner @phone @home +GiveThanks"
-    assert t.priority == "A"
-    assert t.contexts == ["@home", "@phone"]
-    assert t.projects == ["+GiveThanks"]
-    assert t.creation_date == "2000-20-12"
-    assert t.due_date == ""
-    assert t.done_date == ""
-    assert t.is_done() == False
-
-    t = todos[1]
-    assert t.raw == "(B) Schedule Goodwill pickup +GarageSale @phone"
-    assert t.contexts == ["@phone"]
-    assert t.projects == ["+GarageSale"]
-    assert t.priority == "B"
-
-    t = todos[2]
-    t.update("x 2013-10-25 Unpack the guest bedroom +Unpacking due:2013-10-20")
-    assert t.raw == "x 2013-10-25 Unpack the guest bedroom +Unpacking due:2013-10-20"
-    assert t.priority == ""
-    assert t.contexts == []
-    assert t.projects == ["+Unpacking"]
-    assert t.creation_date == ""
-    assert t.due_date == "2013-10-20"
-    assert t.done_date == "2013-10-25"
-    assert t.is_done() == True
-
-    t = todos[3]
-    assert t.raw == "2013-10-19 Post signs around the neighborhood +GarageSale"
-    assert t.contexts == []
-    assert t.projects == ["+GarageSale"]
-    assert t.creation_date == "2013-10-19"
-
-    t = todos[4]
-    assert t.raw == "x 2013-10-01 @GroceryStore Eskimo pies"
-    assert t.contexts == ["@GroceryStore"]
-    assert t.projects == []
-    assert t.done_date == "2013-10-01"
-
-
 def test_todo_add_creation_date(todos, today):
     todos[2].add_creation_date()
-    assert todos[2].raw == "{} Unpack the guest bedroom +Unpacking due:2013-10-20".format(today)
+    assert todos[2].raw == "{} {} {}".format(TODO_TRASH[:3], today, TODO_TRASH[4:])
     assert todos[2].creation_date == "{}".format(today)
-
-    todos[3].add_creation_date()
-    assert todos[3].raw == "2013-10-19 Post signs around the neighborhood +GarageSale"
-    assert todos[3].creation_date == "2013-10-19".format(today)
-
 
 def test_todos_append(todos, today):
     todos.append("THIS IS A TEST @testing")
-    todos.append("THIS IS A TEST @testing", add_creation_date=False)
     assert [t.raw for t in todos] == [
-        "(A) Thank Mom for the dinner @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies",
-        "{} THIS IS A TEST @testing".format(today),
-        "THIS IS A TEST @testing".format(today)]
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2, 3, 4, 5, 6]
-
+        TODO_COWS,
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN,
+        "THIS IS A TEST @testing",
+    ]
+    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4, 5]
 
 def test_todos_delete(todos):
     todos.delete(0)
     assert [t.raw for t in todos] == [
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2, 3]
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN]
+    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3]
     todos.delete(3)
     assert [t.raw for t in todos] == [
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale"]
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2]
-
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE]
+    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2]
 
 def test_todos_insert(todos, today):
     todos.insert(1, "THIS IS A TEST @testing")
-    todos.insert(1, "(B) THIS IS ANOTHER TEST @testing")
-    todos.insert(1, "(A) THIS IS ANOTHER TEST @testing", add_creation_date=False)
     assert [t.raw for t in todos] == [
-        "(A) Thank Mom for the dinner @phone",
-        "(A) THIS IS ANOTHER TEST @testing".format(today),
-        "(B) {} THIS IS ANOTHER TEST @testing".format(today),
-        "{} THIS IS A TEST @testing".format(today),
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies",
+        TODO_COWS,
+        "THIS IS A TEST @testing",
+        TODO_FLUX,
+        TODO_TRASH,
+        TODO_DONE,
+        TODO_PLAN,
     ]
-    assert [todo.raw_index for todo in todos.todo_items] == [0, 1, 2, 3, 4, 5, 6, 7]
-
+    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4, 5]
 
 def test_todos_search(todos):
-    assert [t.raw for t in todos.search("the")] == [
-        "(A) Thank Mom for the dinner @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale"]
-    # one match per line!
-    assert [t.search_matches for t in todos.search("the")] == [("the",), ("the",), ("the",)]
-    assert [t.raw for t in todos.search("te")] == [
-        "(A) Thank Mom for the dinner @phone",
-        "Unpack the guest bedroom +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs around the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"]
-    assert [t.search_matches for t in todos.search("te")] == [("the",), ("t be",), ("the",), ("tore",)]
-
-    assert todos.search(".*") == []
-    assert todos.search("{b}") == []
-
-    todos.update([
-        "(A) 1999-12-24 .Thank* Mom for the .dinner* @phone",
-        "(B) Schedule Goodwill pickup +GarageSale @phone",
-        "Unpack the guest {bedroom} +Unpacking due:2013-10-20",
-        "2013-10-19 Post signs (around) the neighborhood +GarageSale",
-        "x 2013-10-01 @GroceryStore Eskimo pies"])
-
-    assert [t.raw for t in todos.search(".*")] == ["(A) 1999-12-24 .Thank* Mom for the .dinner* @phone"]
-    assert [t.search_matches for t in todos.search(".*")] == [(".dinner*",)]
-    assert [t.raw for t in todos.search("{b}")] == ["Unpack the guest {bedroom} +Unpacking due:2013-10-20"]
-    assert [t.search_matches for t in todos.search("{b}")] == [("{bedroom}",)]
-
+    search = Todos.prep_search("future")
+    assert [t.raw for t in Todos.search(search, todos.get_items())] == [
+        TODO_FLUX,
+        TODO_DONE]
 
 def test_change_priority(todos):
     todos[0].change_priority("F")
-    assert todos[0].raw == "(F) Thank Mom for the dinner @phone"
-    todos[1].change_priority("")
-    assert todos[1].raw == "Schedule Goodwill pickup +GarageSale @phone"
-    todos[2].change_priority("C")
-    assert todos[2].raw == "(C) Unpack the guest bedroom +Unpacking due:2013-10-20"
-    todos[3].change_priority("A")
-    assert todos[3].raw == "(A) 2013-10-19 Post signs around the neighborhood +GarageSale"
-    todos[4].change_priority("B")
-    assert todos[4].raw == "x 2013-10-01 (B) @GroceryStore Eskimo pies"
-    todos[4].change_priority("C")
-    assert todos[4].raw == "x 2013-10-01 (C) @GroceryStore Eskimo pies"
-    todos[4].change_priority("")
-    assert todos[4].raw == "x 2013-10-01 @GroceryStore Eskimo pies"
+    assert todos[0].raw == "(F) " + TODO_COWS
+    todos[0].change_priority("")
+    assert todos[0].raw == TODO_COWS

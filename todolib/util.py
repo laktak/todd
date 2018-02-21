@@ -2,6 +2,7 @@
 import re
 import datetime
 
+
 class Util:
 
     _interval_parts_regex = re.compile(r"([+-])?(\d+)([dwmy]?)")
@@ -58,4 +59,3 @@ class Util:
         elif v == Util.delta1: return "tomorrow"
         elif v <= Util.delta30: return "in {0} days".format(v.days)
         else: return date.isoformat()
-

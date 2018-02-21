@@ -1,7 +1,7 @@
 import re
-import random
 import datetime
 from todolib import Util
+
 
 class Todo:
     """Single Todo item"""
@@ -19,7 +19,7 @@ class Todo:
     _rec_int_parts_regex = re.compile(r"(\+)?(\d+)([dwmy])")
 
     PLHR = u"\N{HORIZONTAL ELLIPSIS}"
-    _plhr_regex = re.compile(PLHR+"[ " + PLHR + "]*")
+    _plhr_regex = re.compile(PLHR + "[ " + PLHR + "]*")
 
     def __init__(self, item, index):
         self.raw_index = index
@@ -69,11 +69,11 @@ class Todo:
         return match.group(1) if match else ""
 
     @staticmethod
-    def get_current_date(inc = 0):
+    def get_current_date(inc=0):
         return datetime.date.today() + datetime.timedelta(days=inc)
 
     @staticmethod
-    def get_current_date_str(inc = 0):
+    def get_current_date_str(inc=0):
         return Todo.get_current_date(inc).isoformat()
 
     def __repr__(self):
@@ -88,7 +88,6 @@ class Todo:
             "due_date": self.due_date,
             "rec_int": self.rec_int,
         })
-
 
     def change_priority(self, new_priority):
         self.priority = new_priority
@@ -111,7 +110,7 @@ class Todo:
         else:
             return True
 
-    def set_done(self, done = True):
+    def set_done(self, done=True):
         if done:
             today = datetime.date.today()
             self.raw = "x " + today.isoformat() + " " + self.raw

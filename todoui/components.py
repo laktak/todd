@@ -1,6 +1,7 @@
 import urwid
 from todolib.util import Util
 
+
 class EntryWidget(urwid.Edit):
 
     def __init__(self, edit_text, on_enter):
@@ -51,6 +52,8 @@ class ViListBox(urwid.ListBox):
             ("up", urwid.CURSOR_UP),
             ("home", urwid.CURSOR_MAX_LEFT),
             ("end", urwid.CURSOR_MAX_RIGHT),
+            ("page-up", urwid.CURSOR_PAGE_UP),
+            ("page-down", urwid.CURSOR_PAGE_DOWN),
         ])
 
     def listbox_count(self):

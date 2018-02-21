@@ -2,6 +2,7 @@ import urwid
 
 # Modified from http://wiki.goffi.org/wiki/Urwid-satext/en
 
+
 class AdvancedEdit(urwid.Edit):
     """Edit box with some custom improvments
     new chars:

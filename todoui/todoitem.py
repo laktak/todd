@@ -2,6 +2,7 @@ import urwid
 from todolib import Todo, Todos, Util
 from todoui import AdvancedEdit
 
+
 class TodoItem(urwid.Button):
 
     def __init__(self, todo, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
@@ -32,8 +33,8 @@ class TodoItem(urwid.Button):
 
             due_name = Util.get_date_name(t.get_due(), today)
             if t.rec_int:
-                if t.rec_int[0] == "+": rec_text = "after "+t.rec_int[1:]
-                else: rec_text = "every "+t.rec_int
+                if t.rec_int[0] == "+": rec_text = "every " + t.rec_int[1:]
+                else: rec_text = "after " + t.rec_int
             else: rec_text = ""
 
             main = urwid.Text((text_col, t.get_desc()), wrap=self.wrapping)
@@ -45,7 +46,7 @@ class TodoItem(urwid.Button):
                 (12, due),
                 (12, rec),
                 (15, context),
-                ], dividechars=2)
+            ], dividechars=2)
 
         self._w = urwid.AttrMap(urwid.AttrMap(
             text,

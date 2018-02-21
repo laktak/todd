@@ -1,52 +1,60 @@
 import os
 import re
-import random
 from todolib import Todo
+
 
 class Todos:
     """Todo items"""
 
-    def __init__(self, todo_items, file_path, archive_path=None):
-        self.file_path = file_path
-        if archive_path: self.archive_path = archive_path
-        else: self.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
-        self.update(todo_items)
+    def __init__(self, text_items):
+        self.set_items(text_items or [])
 
-    def reload_from_file(self):
+    @staticmethod
+    def open_file(file_path, archive_path=None):
+        todos = Todos(None)
+        todos.file_path = file_path
+        if archive_path: todos.archive_path = archive_path
+        else: todos.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
+        todos.reload()
+        return todos
+
+    def reload(self):
         with open(self.file_path, "r", encoding="utf-8") as todotxt_file:
-            self.update(todotxt_file.readlines())
+            self.set_items(todotxt_file.readlines())
 
     def save(self):
         with open(self.file_path, "w", encoding="utf-8") as todotxt_file:
-            for t in self.todo_items:
+            for t in self._items:
                 todotxt_file.write(t.raw + "\n")
 
     def archive_done(self):
         with open(self.archive_path, "a", encoding="utf-8") as donetxt_file:
-            done = Todos.filter_done(self.todo_items)
+            done = Todos.filter_done(self._items)
             for t in done:
                 donetxt_file.write(t.raw + "\n")
-                self.todo_items.remove(t)
-
+                self._items.remove(t)
         self.save()
 
-    def update(self, todo_items):
-        self.parse_raw_entries(todo_items)
+    def set_items(self, text_items):
+        self._items = [
+            Todo(todo, index)
+            for index, todo in enumerate(text_items) if todo.strip() != ""]
 
-    def append(self, item, add_creation_date=True):
-        self.insert(len(self.todo_items), item, add_creation_date)
-        return len(self.todo_items) - 1
+    def update_raw_indices(self):
+        for index, todo in enumerate(self._items):
+            todo.raw_index = index
 
-    def insert(self, index, item, add_creation_date=True):
-        self.todo_items.insert(index, self.create_todo(item, index))
+    def append(self, item):
+        self.insert(len(self._items), item)
         self.update_raw_indices()
-        newtodo = self.todo_items[index]
-        if add_creation_date and newtodo.creation_date == "":
-            newtodo.add_creation_date()
-        return index
+        return len(self._items) - 1
+
+    def insert(self, index, item):
+        self._items.insert(index, Todo(item, index))
+        self.update_raw_indices()
 
     def delete(self, index):
-        del self.todo_items[index]
+        del self._items[index]
         self.update_raw_indices()
 
     def __iter__(self):
@@ -55,54 +63,49 @@ class Todos:
 
     def __next__(self):
         self.index = self.index + 1
-        if self.index == len(self.todo_items):
+        if self.index == len(self._items):
             raise StopIteration
-        return self.todo_items[self.index]
+        return self._items[self.index]
 
     def next(self):
         self.index = self.index + 1
-        if self.index == len(self.todo_items):
+        if self.index == len(self._items):
             raise StopIteration
-        return self.todo_items[self.index]
+        return self._items[self.index]
 
     def __len__(self):
-        return len(self.todo_items)
+        return len(self._items)
 
     def __getitem__(self, index):
-        return self.todo_items[index]
+        return self._items[index]
 
     def __repr__(self):
-        return repr([i for i in self.todo_items])
-
-    def create_todo(self, todo, index):
-        return Todo(todo, index)
-
-    def parse_raw_entries(self, raw_items):
-        self.todo_items = [
-            self.create_todo(todo, index)
-            for index, todo in enumerate(raw_items) if todo.strip() != ""]
-
-    def update_raw_indices(self):
-        for index, todo in enumerate(self.todo_items):
-            todo.raw_index = index
+        return repr([i for i in self._items])
 
     def all_contexts(self):
-        return sorted(set([context for todo in self.todo_items for context in todo.contexts]))
+        return sorted(set([context for todo in self._items for context in todo.contexts]))
 
     def all_projects(self):
-        return sorted(set([project for todo in self.todo_items for project in todo.projects]))
+        return sorted(set([project for todo in self._items for project in todo.projects]))
+
+    def get_items(self):
+        return self._items
 
     def get_items_sorted(self, sort_by):
+
         def due_prio(todo):
-            res = todo.due_date + todo.raw
+            res = todo.due_date
+            if not res: res = "9999"
+            res += todo.raw
             if not res: res = "z"
             if todo.is_done(): res = "z" + res
             return res
+
         def prio(todo):
             return todo.raw
 
-        if sort_by == "due": return sorted(self.todo_items, key=due_prio)
-        elif sort_by == "prio": return sorted(self.todo_items, key=prio)
+        if sort_by == "due": return sorted(self._items, key=due_prio)
+        elif sort_by == "prio": return sorted(self._items, key=prio)
 
     @staticmethod
     def filter_due(items, date):
@@ -124,7 +127,7 @@ class Todos:
     def prep_search(search_string):
         search_list = [x for x in [x.strip() for x in search_string.split(" ")] if x != ""]
         if not search_list: return None
-        exp1 = "".join(["(?=.*("+re.escape(item)+"))" for item in search_list])
+        exp1 = "".join(["(?=.*(" + re.escape(item) + "))" for item in search_list])
         exp2 = "(" + "|".join([re.escape(item) for item in search_list]) + ")"
         return (re.compile(exp1, re.IGNORECASE), re.compile(exp2, re.IGNORECASE))
 
@@ -141,5 +144,5 @@ class Todos:
             for index, w in enumerate(color_list):
                 if w in matches: color_list[index] = ("search_match", w)
             return color_list
-        except:
+        except Exception:
             return text

@@ -1,7 +1,8 @@
 import urwid
 import collections
 from todolib import Todo, Todos, Util
-from todoui import *
+import todoui
+
 
 class MainUI:
 
@@ -22,10 +23,10 @@ class MainUI:
         self.search_highlight = False
         self.search_string = ""
 
-        self.listbox = ViListBox(self.key_bindings, urwid.SimpleListWalker([]))
+        self.listbox = todoui.ViListBox(self.key_bindings, urwid.SimpleListWalker([]))
         urwid.connect_signal(self.listbox.body, "modified", self.todo_list_updated)
         self.frame = urwid.Frame(urwid.AttrMap(self.listbox, "plain"), header=None, footer=None)
-        self.view = ViColumns(self.key_bindings, [("weight", 5, self.frame)])
+        self.view = todoui.ViColumns(self.key_bindings, [("weight", 5, self.frame)])
         self.help_panel = None
 
         self.loop = urwid.MainLoop(self.view, self.palette, unhandled_input=self.keystroke, handle_mouse=False)
@@ -51,7 +52,7 @@ class MainUI:
             self.help_panel = None
             self.loop.widget = self.view
         else:
-            self.help_panel = MainHelp.create_help_panel(self.key_bindings)
+            self.help_panel = todoui.MainHelp.create_help_panel(self.key_bindings)
             self.loop.widget = urwid.Overlay(self.help_panel, self.view, "center", 70, "middle", ("relative", 90))
 
     def toggle_sort_order(self, button=None):
@@ -63,12 +64,12 @@ class MainUI:
         def create_context_panel():
             allc = self.todos.all_contexts()
 
-            self.context_list = ViListBox(self.key_bindings, urwid.SimpleListWalker(
+            self.context_list = todoui.ViListBox(self.key_bindings, urwid.SimpleListWalker(
                 [urwid.Divider()] +
                 [urwid.Text("Switch Context")] +
                 [urwid.Divider(u"─")] +
-                [urwid.AttrMap(MenuItem("(all)", self.toggle_context_panel), "dialog_color", "plain_selected")] +
-                [urwid.AttrMap(MenuItem([c[1:]], self.toggle_context_panel), "dialog_color", "plain_selected") for c in allc]
+                [urwid.AttrMap(todoui.MenuItem("(all)", self.toggle_context_panel), "dialog_color", "plain_selected")] +
+                [urwid.AttrMap(todoui.MenuItem([c[1:]], self.toggle_context_panel), "dialog_color", "plain_selected") for c in allc]
             ))
 
             if self.active_context:
@@ -98,7 +99,7 @@ class MainUI:
                 urwid.Text("Todo format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:2020-10-01)"),
             ]), "footer")
         elif name == "search":
-            search_box = EntryWidget(self.search_string, self.commit_search)
+            search_box = todoui.EntryWidget(self.search_string, self.commit_search)
             self.frame.footer = urwid.AttrMap(urwid.Columns([
                 (1, urwid.Text("/")),
                 search_box,
@@ -106,15 +107,16 @@ class MainUI:
             urwid.connect_signal(search_box, "change", self.search_updated)
             self.frame.set_focus("footer")
         elif name == "due" or name == "due-":
-            edit_box = EntryWidget("" if name == "due" else "-", self.commit_due)
+            edit_box = todoui.EntryWidget("" if name == "due" else "-", self.commit_due)
             self.frame.footer = urwid.AttrMap(urwid.Pile([
                 urwid.Columns([(17, urwid.Text("adjust due date:")), edit_box]),
-                urwid.Text("Specify as <number><interval> where interval is d, m or y (days, months, years) like 7d, -2m or +5y.", align="right"),
+                urwid.Text(
+                    "Specify as <number><interval> where interval is d, m or y (days, months, years) like 7d, -2m or +5y.",
+                    align="right"),
             ]), "footer")
             self.frame.set_focus("footer")
         else:
             self.frame.footer = None
-
 
     def set_selection_raw(self, raw_index):
         for i in range(len(self.listbox.body) - 1):
@@ -133,7 +135,7 @@ class MainUI:
         self.listbox.move_top()
 
     def reload_todos_from_file(self, button=None):
-        self.todos.reload_from_file()
+        self.todos.reload()
         self.fill_listbox()
         self.update_header("Reloaded")
 
@@ -141,7 +143,7 @@ class MainUI:
         self.update_header()
 
     def adjust_priority(self, focus, higher=True):
-        priorities = ["", "A", "B", "C", "D", "E", "F"]
+        priorities = ["A", "B", "C", "D", "E", "F", ""]
         if higher:
             new_priority = priorities.index(focus.todo.priority) - 1
         else:
@@ -168,12 +170,12 @@ class MainUI:
             due = Util.date_add_interval_str(due, text)
             focus.todo.set_due(due)
             self.fill_listbox()
-        except:
+        except Exception:
             self.update_header("Invalid format!")
 
     def add_new_todo(self):
-        new_index = self.todos.append("", add_creation_date=False)
-        t = TodoItem(self.todos[new_index], self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
+        new_index = self.todos.append("")
+        t = todoui.TodoItem(self.todos[new_index], self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
         self.edit_todo()
@@ -196,7 +198,7 @@ class MainUI:
             self.todos.archive_done()
             rec = t.set_done()
             if rec:
-                new_index = self.todos.append(t.raw, add_creation_date=False)
+                self.todos.append(t.raw)
                 t.set_done(False)
                 t.set_due(rec)
             else:
@@ -204,7 +206,7 @@ class MainUI:
         self.fill_listbox()
 
     def delete_todo(self, focus):
-        if self.todos.todo_items:
+        if self.todos.get_items():
             self.listbox.move_offs(1)
             self.todos.delete(focus.todo.raw_index)
             self.fill_listbox()
@@ -260,11 +262,11 @@ class MainUI:
 
         self.items = items
         self.listbox.body.clear()
-        self.listbox.body.extend([TodoItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
+        self.listbox.body.extend(
+            [todoui.TodoItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
 
         self.set_selection_raw(last_idx)
         self.update_header()
-
 
     def keystroke(self, key):
 
@@ -298,7 +300,6 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "archive"): self.archive_done_todos()
         elif self.key_bindings.is_bound_to(key, "save"): self.save_todos()
         elif self.key_bindings.is_bound_to(key, "reload"): self.reload_todos_from_file()
-
 
     def main(self, enable_word_wrap=False):
 

@@ -10,8 +10,8 @@ todd
 from setuptools import setup, find_packages
 
 from setuptools.command.test import test as TestCommand
-import todoui
 import sys
+import todolib
 
 
 class PyTest(TestCommand):
@@ -26,6 +26,7 @@ class PyTest(TestCommand):
         import pytest
         errno = pytest.main(self.test_args)
         sys.exit(errno)
+
 
 NAME = "todd"
 
