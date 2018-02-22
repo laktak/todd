@@ -21,8 +21,8 @@ class Todo:
     PLHR = u"\N{HORIZONTAL ELLIPSIS}"
     _plhr_regex = re.compile(PLHR + "[ " + PLHR + "]*")
 
-    def __init__(self, item, index):
-        self.raw_index = index
+    def __init__(self, item, item_id):
+        self.item_id = item_id
         self.update(item)
 
     def update(self, item):
@@ -79,7 +79,7 @@ class Todo:
     def __repr__(self):
         return repr({
             "raw": self.raw,
-            "raw_index": self.raw_index,
+            "item_id": self.item_id,
             "priority": self.priority,
             "done_date": self.done_date,
             "creation_date": self.creation_date,

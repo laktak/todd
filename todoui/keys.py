@@ -28,6 +28,7 @@ class KeyBindings:
         self.key_bindings["save"] = ["S"]
         self.key_bindings["reload"] = ["R"]
         self.key_bindings["archive"] = ["X"]
+        self.key_bindings["undo-archive"] = ["U"]
         self.key_bindings["new"] = ["n"]
         self.key_bindings["toggle-done"] = ["x"]
         self.key_bindings["priority-higher"] = ["<"]

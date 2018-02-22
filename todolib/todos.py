@@ -9,7 +9,8 @@ class Todos:
     """Todo items"""
 
     def __init__(self, text_items):
-        self.set_items(text_items or [])
+        self.next_id = 1
+        self.set_text_items(text_items or [])
 
     @staticmethod
     def open_file(file_path, archive_path=None):
@@ -20,13 +21,18 @@ class Todos:
         todos.reload()
         return todos
 
+    def get_next_id(self):
+        res = self.next_id
+        self.next_id += 1
+        return res
+
     def has_file_changed(self):
         return self.file_m != os.path.getmtime(self.file_path)
 
     def reload(self):
         self.file_m = os.path.getmtime(self.file_path)
         with open(self.file_path, "r", encoding="utf-8") as todotxt_file:
-            self.set_items(todotxt_file.readlines())
+            self.set_text_items(todotxt_file.readlines())
 
     def save(self):
         with open(self.file_path, "w", encoding="utf-8") as todotxt_file:
@@ -36,11 +42,13 @@ class Todos:
 
     def watch(self, handler):
         path = self.file_path
+
         class Watcher(watchdog.events.FileSystemEventHandler):
             def on_modified(self, event):
                 if (not event.is_directory and
-                    os.path.realpath(event.src_path) == os.path.realpath(path)):
+                        os.path.realpath(event.src_path) == os.path.realpath(path)):
                     handler()
+
         self.observer = watchdog.observers.Observer()
         self.observer.schedule(Watcher(), os.path.dirname(path))
         self.observer.start()
@@ -58,27 +66,52 @@ class Todos:
                 self._items.remove(t)
         self.save()
 
-    def set_items(self, text_items):
+    def undo_archive(self):
+        with open(self.archive_path, "r+", encoding="utf-8") as file:
+
+            file.seek(0, os.SEEK_END)
+            pos = file.tell()
+
+            text = ""
+            while pos > 0:
+                pos -= 1
+                file.seek(pos, os.SEEK_SET)
+                c = file.read(1)
+                if c == "\n":
+                    if text.strip() != "":
+                        pos += 1
+                        break
+                    else:
+                        text = ""
+                else:
+                    text = c + text
+
+            res = None
+            text = text.strip()
+            if text != "":
+                res = self.append_text(text)
+                self.save()
+
+            file.seek(pos, os.SEEK_SET)
+            file.truncate()
+            return res
+
+    def set_text_items(self, text_items):
         self._items = [
-            Todo(todo, index)
-            for index, todo in enumerate(text_items) if todo.strip() != ""]
+            Todo(todo, self.get_next_id())
+            for todo in text_items if todo.strip() != ""
+        ]
 
-    def update_raw_indices(self):
-        for index, todo in enumerate(self._items):
-            todo.raw_index = index
+    def append_text(self, text_item):
+        return self.insert_text(len(self._items), text_item)
 
-    def append(self, item):
-        self.insert(len(self._items), item)
-        self.update_raw_indices()
-        return len(self._items) - 1
-
-    def insert(self, index, item):
-        self._items.insert(index, Todo(item, index))
-        self.update_raw_indices()
+    def insert_text(self, index, text_item):
+        todo = Todo(text_item, self.get_next_id())
+        self._items.insert(index, todo)
+        return todo
 
     def delete(self, index):
         del self._items[index]
-        self.update_raw_indices()
 
     def __iter__(self):
         self.index = -1

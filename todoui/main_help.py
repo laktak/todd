@@ -26,6 +26,7 @@ General
 {3} - save current todo file
 {4} - reload the todo file (discarding changes)
 {5} - archive done items to done.txt
+{6} - undo archive for the last item (repeat as required)
 """.format(
             key_bindings["toggle-help"].ljust(key_column_width),
             key_bindings["quit"].ljust(key_column_width),
@@ -33,6 +34,7 @@ General
             key_bindings["save"].ljust(key_column_width),
             key_bindings["reload"].ljust(key_column_width),
             key_bindings["archive"].ljust(key_column_width),
+            key_bindings["undo-archive"].ljust(key_column_width),
         ))] +
 
         [urwid.AttrWrap(urwid.Text("""

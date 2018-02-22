@@ -47,7 +47,7 @@ class MainUI:
                 urwid.Text(("header_file", message), align="right"),
             ]), "header")
 
-    def toggle_help_panel(self, button=None):
+    def toggle_help_panel(self):
         if self.context_panel: self.toggle_context_panel()
         if self.help_panel:
             self.help_panel = None
@@ -56,12 +56,12 @@ class MainUI:
             self.help_panel = todoui.MainHelp.create_help_panel(self.key_bindings)
             self.loop.widget = urwid.Overlay(self.help_panel, self.view, "center", 70, "middle", ("relative", 90))
 
-    def toggle_sort_order(self, button=None):
+    def toggle_sort_order(self):
         self.sort_order.rotate(1)
         self.fill_listbox()
         self.listbox.move_top()
 
-    def toggle_context_panel(self, button=None):
+    def toggle_context_panel(self):
         def create_context_panel():
             allc = self.todos.all_contexts()
 
@@ -119,14 +119,14 @@ class MainUI:
         else:
             self.frame.footer = None
 
-    def set_selection_raw(self, raw_index):
-        for i in range(len(self.listbox.body) - 1):
-            if self.listbox.body[i].todo.raw_index == raw_index:
+    def select_by_id(self, item_id):
+        for i in range(len(self.listbox.body)):
+            if self.listbox.body[i].todo.item_id == item_id:
                 self.listbox.set_focus(i)
                 return
         self.listbox.move_top()
 
-    def save_todos(self, button=None):
+    def save_todos(self):
         self.todos.save()
         self.update_header("Saved")
 
@@ -135,11 +135,17 @@ class MainUI:
         self.fill_listbox()
         self.listbox.move_top()
 
+    def archive_undo(self):
+        t = self.todos.undo_archive()
+        self.fill_listbox()
+        self.select_by_id(t.item_id)
+
     def reload_todos_from_file(self):
         self.todos.reload()
         self.fill_listbox()
         self.update_header("Reloaded")
 
+    # called by watcher
     def file_updated(self, dummy):
         if self.todos.has_file_changed():
             self.reload_todos_from_file()
@@ -174,13 +180,14 @@ class MainUI:
             due = focus.todo.get_due() or Todo.get_current_date()
             due = Util.date_add_interval_str(due, text)
             focus.todo.set_due(due)
+            self.todos.save()
             self.fill_listbox()
         except Exception:
             self.update_header("Invalid format!")
 
     def add_new_todo(self):
-        new_index = self.todos.append("")
-        t = todoui.TodoItem(self.todos[new_index], self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
+        todo = self.todos.append_text("")
+        t = todoui.TodoItem(todo, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
         self.edit_todo()
@@ -193,27 +200,31 @@ class MainUI:
     def todo_changed(self):
         # finished editing
         self.update_footer("")
+        self.todos.save()
         self.fill_listbox()
 
     def toggle_done(self, focus):
         t = focus.todo
         if t.is_done():
             t.set_done(False)
+            self.todos.save()
         else:
-            self.todos.archive_done()
             rec = t.set_done()
             if rec:
-                self.todos.append(t.raw)
+                self.todos.append_text(t.raw)
                 t.set_done(False)
                 t.set_due(rec)
             else:
                 self.listbox.move_offs(1)
+            self.todos.archive_done() # does save
+
         self.fill_listbox()
 
     def delete_todo(self, focus):
         if self.todos.get_items():
             self.listbox.move_offs(1)
-            self.todos.delete(focus.todo.raw_index)
+            self.todos.delete(focus.todo.item_id)
+            self.todos.save()
             self.fill_listbox()
 
     def start_search(self):
@@ -233,7 +244,7 @@ class MainUI:
             self.update_footer("")
         self.fill_listbox()
 
-    def clear_search_term(self, button=None):
+    def clear_search_term(self):
         if self.search_string:
             self.search_string = ""
             self.update_footer("")
@@ -251,7 +262,7 @@ class MainUI:
     def fill_listbox(self):
         # clear
         focus, focus_index = self.listbox.get_focus()
-        last_idx = focus.todo.raw_index if focus else -1
+        last_id = focus.todo.item_id if focus else -1
 
         sort_by = self.sort_order[0]
         items = self.todos.get_items_sorted(sort_by.lower())
@@ -270,7 +281,7 @@ class MainUI:
         self.listbox.body.extend(
             [todoui.TodoItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
 
-        self.set_selection_raw(last_idx)
+        self.select_by_id(last_id)
         self.update_header()
 
     def keystroke(self, key):
@@ -303,6 +314,7 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "subtract-due"): self.change_due(focus, False)
 
         elif self.key_bindings.is_bound_to(key, "archive"): self.archive_done_todos()
+        elif self.key_bindings.is_bound_to(key, "undo-archive"): self.archive_undo()
         elif self.key_bindings.is_bound_to(key, "save"): self.save_todos()
         elif self.key_bindings.is_bound_to(key, "reload"): self.reload_todos_from_file()
 
@@ -314,8 +326,9 @@ class MainUI:
         self.fill_listbox()
 
         pipe = self.loop.watch_pipe(self.file_updated)
+
         def piper():
-            os.write(pipe, b'updated') # trigger file_updated
+            os.write(pipe, b'updated')  # trigger file_updated
 
         self.todos.watch(piper)
         self.loop.run()

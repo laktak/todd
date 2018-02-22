@@ -54,9 +54,7 @@ def get_real_path(filename, description):
             open(file_path, "a").close()
         else:
             exit_with_error(
-                "ERROR: The directory: '{0}' does not exist\n\n" +
-                "Please create the directory or specify a different\n" +
-                "{0} file on the command line.".format(directory, description)
+                ("ERROR: The directory: '{0}' for '{1}' does not exist\n").format(directory, file_path)
             )
 
     return file_path
@@ -97,9 +95,6 @@ def main():
 
     # load the colorscheme defined in the user config, else load the default scheme
     colorscheme = ColorScheme(dict(cfg.items("settings")).get("colorscheme", "default"), cfg)
-
-    # Get auto-saving setting (defaults to True)
-    enable_autosave = get_boolean_config_option(cfg, "settings", "auto-save", default=True)
 
     # Load the todo.txt file specified in the [settings] section of the config file
     # a todo.txt file on the command line takes precedence

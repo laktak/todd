@@ -69,7 +69,7 @@ def test_todos_iterable(todos):
         assert todo.raw != ""
 
 def test_context_project_regex(todos):
-    todos.set_items([
+    todos.set_text_items([
         TODO_COWS + " foo@email.com @email",
         TODO_FLUX + " NotA+Project +project-y",
         TODO_TRASH,
@@ -109,27 +109,27 @@ def test_todos_priority(todos):
     assert Todo.scan_priority("(A)->No Priority") == ""
 
 def test_todos_sorted(todos):
-    todos.set_items([
+    todos.set_text_items([
         TODO_FLUX,
         TODO_COWS,
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN,
     ])
-    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4]
+    assert [todo.item_id for todo in todos.get_items()] == [6, 7, 8, 9, 10]
 
-    assert [todo.raw_index for todo in todos.get_items_sorted("due")] == [
-        2, 0, 1, 4, 3]
+    assert [todo.item_id for todo in todos.get_items_sorted("due")] == [
+        8, 6, 7, 10, 9]
 
-    assert [todo.raw_index for todo in todos.get_items_sorted("prio")] == [
-        0, 2, 1, 4, 3]
+    assert [todo.item_id for todo in todos.get_items_sorted("prio")] == [
+        6, 8, 7, 10, 9]
 
 def test_todos_filter_context(todos):
-    assert [t.raw_index for t in Todos.filter_context(todos.get_items(), "@weekend")] == [
-        1, 4]
+    assert [t.item_id for t in Todos.filter_context(todos.get_items(), "@weekend")] == [
+        2, 5]
 
 def test_todos_set_items(todos):
-    todos.set_items([
+    todos.set_text_items([
         TODO_FLUX,
         TODO_TRASH,
         TODO_DONE,
@@ -155,7 +155,7 @@ def test_todos_set_done(todos, today):
     assert todos[1].done_date == ""
 
 def test_todo_undo(todos):
-    todos.set_items([
+    todos.set_text_items([
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN])
@@ -166,7 +166,7 @@ def test_todo_undo(todos):
     assert todos[1].done_date == ""
 
 def test_todo_is_done(todos):
-    todos.set_items([
+    todos.set_text_items([
         TODO_COWS,
         TODO_TRASH,
         TODO_DONE,
@@ -182,7 +182,7 @@ def test_todo_add_creation_date(todos, today):
     assert todos[2].creation_date == "{}".format(today)
 
 def test_todos_append(todos, today):
-    todos.append("THIS IS A TEST @testing")
+    todos.append_text("THIS IS A TEST @testing")
     assert [t.raw for t in todos] == [
         TODO_COWS,
         TODO_FLUX,
@@ -191,7 +191,7 @@ def test_todos_append(todos, today):
         TODO_PLAN,
         "THIS IS A TEST @testing",
     ]
-    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4, 5]
+    assert [todo.item_id for todo in todos.get_items()] == [1, 2, 3, 4, 5, 6]
 
 def test_todos_delete(todos):
     todos.delete(0)
@@ -200,16 +200,16 @@ def test_todos_delete(todos):
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN]
-    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3]
+    assert [todo.item_id for todo in todos.get_items()] == [2, 3, 4, 5]
     todos.delete(3)
     assert [t.raw for t in todos] == [
         TODO_FLUX,
         TODO_TRASH,
         TODO_DONE]
-    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2]
+    assert [todo.item_id for todo in todos.get_items()] == [2, 3, 4]
 
 def test_todos_insert(todos, today):
-    todos.insert(1, "THIS IS A TEST @testing")
+    todos.insert_text(1, "THIS IS A TEST @testing")
     assert [t.raw for t in todos] == [
         TODO_COWS,
         "THIS IS A TEST @testing",
@@ -218,7 +218,7 @@ def test_todos_insert(todos, today):
         TODO_DONE,
         TODO_PLAN,
     ]
-    assert [todo.raw_index for todo in todos.get_items()] == [0, 1, 2, 3, 4, 5]
+    assert [todo.item_id for todo in todos.get_items()] == [1, 6, 2, 3, 4, 5]
 
 def test_todos_search(todos):
     search = Todos.prep_search("future")

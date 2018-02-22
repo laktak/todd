@@ -7,7 +7,7 @@ class TodoItem(urwid.Button):
 
     def __init__(self, todo, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
         super(TodoItem, self).__init__("")
-        self.todo = todo
+        self.todo = todo  # type Todo
         self.key_bindings = key_bindings
         self.wrapping = wrapping
         self.colorscheme = colorscheme
@@ -75,7 +75,7 @@ class TodoItem(urwid.Button):
                 return text[:space + 1] + words[idx] + (": " if space < 0 else "")
         return text
 
-    def save_item(self):
+    def end_edit(self):
         self.editing = False
         self.todo.update(self._w.original_widget.edit_text.strip())
         self.update_todo()
@@ -85,7 +85,7 @@ class TodoItem(urwid.Button):
         if self.editing:
             if key in ["down", "up"]: return None  # don't pass up or down to the ListBox
             elif key == "enter":
-                self.save_item()
+                self.end_edit()
                 return None
             else:
                 return self._w.keypress(size, key)
