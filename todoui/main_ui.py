@@ -153,20 +153,12 @@ class MainUI:
     def todo_list_updated(self):
         self.update_header()
 
-    def adjust_priority(self, focus, higher=True):
+    def adjust_priority(self, focus, mod):
+        assert mod in [1, -1]
         priorities = ["A", "B", "C", "D", "E", "F", ""]
-        if higher:
-            new_priority = priorities.index(focus.todo.priority) - 1
-        else:
-            new_priority = priorities.index(focus.todo.priority) + 1
-
-        if new_priority < 0:
-            focus.todo.change_priority(priorities[len(priorities) - 1])
-        elif new_priority < len(priorities):
-            focus.todo.change_priority(priorities[new_priority])
-        else:
-            focus.todo.change_priority(priorities[0])
-
+        l = len(priorities)
+        new_prio = (priorities.index(focus.todo.priority) + l + mod) % l
+        focus.todo.change_priority(priorities[new_prio])
         focus.update_todo()
 
     def change_due(self, focus, add=True):
@@ -308,8 +300,8 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "edit"): self.edit_todo()
         elif self.key_bindings.is_bound_to(key, "toggle-done"): self.toggle_done(focus)
         elif self.key_bindings.is_bound_to(key, "delete"): self.delete_todo(focus)
-        elif self.key_bindings.is_bound_to(key, "priority-higher"): self.adjust_priority(focus, higher=True)
-        elif self.key_bindings.is_bound_to(key, "priority-lower"): self.adjust_priority(focus, higher=False)
+        elif self.key_bindings.is_bound_to(key, "priority-higher"): self.adjust_priority(focus, 1)
+        elif self.key_bindings.is_bound_to(key, "priority-lower"): self.adjust_priority(focus, -1)
         elif self.key_bindings.is_bound_to(key, "add-due"): self.change_due(focus, True)
         elif self.key_bindings.is_bound_to(key, "subtract-due"): self.change_due(focus, False)
 
