@@ -1,5 +1,5 @@
 import urwid
-from todolib.util import Util
+from tasklib.util import Util
 
 
 class EntryWidget(urwid.Edit):

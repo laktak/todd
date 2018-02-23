@@ -1,30 +1,30 @@
 import urwid
-from todolib import Todo, Todos, Util
-from todoui import AdvancedEdit
+from tasklib import Task, Tasklist, Util
+from taskui import AdvancedEdit
 
 
-class TodoItem(urwid.Button):
+class TaskItem(urwid.Button):
 
-    def __init__(self, todo, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
-        super(TodoItem, self).__init__("")
-        self.todo = todo  # type Todo
+    def __init__(self, task, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
+        super(TaskItem, self).__init__("")
+        self.task = task  # type Task
         self.key_bindings = key_bindings
         self.wrapping = wrapping
         self.colorscheme = colorscheme
         self.parent_ui = parent_ui
         self.editing = False
-        self.update_todo(search)
+        self.update_task(search)
 
     def selectable(self):
         return True
 
-    def update_todo(self, search=None):
+    def update_task(self, search=None):
         if search:
-            show = Todos.get_search_highlight(search, self.todo.raw)
+            show = Tasklist.get_search_highlight(search, self.task.raw)
             text = urwid.Text(show, wrap=self.wrapping)
         else:
-            t = self.todo
-            today = Todo.get_current_date()
+            t = self.task
+            today = Task.get_current_date()
             status = t.get_status(today.isoformat())
             status_col = "status_" + status
             if t.is_done(): text_col = status_col
@@ -55,14 +55,14 @@ class TodoItem(urwid.Button):
 
     def edit_item(self):
         self.editing = True
-        self.edit_widget = AdvancedEdit(self.parent_ui, self.key_bindings, caption="", edit_text=self.todo.raw)
+        self.edit_widget = AdvancedEdit(self.parent_ui, self.key_bindings, caption="", edit_text=self.task.raw)
         self.edit_widget.setCompletionMethod(self.completions)
         self._w = urwid.AttrMap(self.edit_widget, "plain_selected")
 
     def completions(self, text, completion_data={}):
         space = text.rfind(" ")
         start = text[space + 1:]
-        words = self.parent_ui.todos.all_contexts() + self.parent_ui.todos.all_projects()
+        words = self.parent_ui.tasklist.all_contexts() + self.parent_ui.tasklist.all_projects()
         try:
             start_idx = words.index(completion_data["last_word"]) + 1
             if start_idx == len(words):
@@ -77,9 +77,9 @@ class TodoItem(urwid.Button):
 
     def end_edit(self):
         self.editing = False
-        self.todo.update(self._w.original_widget.edit_text.strip())
-        self.update_todo()
-        self.parent_ui.todo_changed()
+        self.task.update(self._w.original_widget.edit_text.strip())
+        self.update_task()
+        self.parent_ui.task_changed()
 
     def keypress(self, size, key):
         if self.editing:

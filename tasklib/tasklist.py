@@ -2,11 +2,10 @@ import os
 import re
 import watchdog.events
 import watchdog.observers
-from todolib import Todo
+from tasklib import Task
 
 
-class Todos:
-    """Todo items"""
+class Tasklist:
 
     def __init__(self, text_items):
         self.next_id = 1
@@ -14,12 +13,12 @@ class Todos:
 
     @staticmethod
     def open_file(file_path, archive_path=None):
-        todos = Todos(None)
-        todos.file_path = file_path
-        if archive_path: todos.archive_path = archive_path
-        else: todos.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
-        todos.reload()
-        return todos
+        tasklist = Tasklist(None)
+        tasklist.file_path = file_path
+        if archive_path: tasklist.archive_path = archive_path
+        else: tasklist.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
+        tasklist.reload()
+        return tasklist
 
     def get_next_id(self):
         res = self.next_id
@@ -60,7 +59,7 @@ class Todos:
 
     def archive_done(self):
         with open(self.archive_path, "a", encoding="utf-8") as donetxt_file:
-            done = Todos.filter_done(self._items)
+            done = Tasklist.filter_done(self._items)
             for t in done:
                 donetxt_file.write(t.raw + "\n")
                 self._items.remove(t)
@@ -98,25 +97,25 @@ class Todos:
 
     def set_text_items(self, text_items):
         self._items = [
-            Todo(todo, self.get_next_id())
-            for todo in text_items if todo.strip() != ""
+            Task(task, self.get_next_id())
+            for task in text_items if task.strip() != ""
         ]
 
-    def get_index(self, item_id):
+    def get_index(self, task_id):
         for i in range(len(self._items)):
-            if self._items[i].item_id == item_id:
+            if self._items[i].task_id == task_id:
                 return i
 
     def append_text(self, text_item):
         return self.insert_text(len(self._items), text_item)
 
     def insert_text(self, index, text_item):
-        todo = Todo(text_item, self.get_next_id())
-        self._items.insert(index, todo)
-        return todo
+        task = Task(text_item, self.get_next_id())
+        self._items.insert(index, task)
+        return task
 
-    def delete_by_id(self, item_id):
-        index = self.get_index(item_id)
+    def delete_by_id(self, task_id):
+        index = self.get_index(task_id)
         if index is not None:
             del self._items[index]
 
@@ -146,26 +145,26 @@ class Todos:
         return repr([i for i in self._items])
 
     def all_contexts(self):
-        return sorted(set([context for todo in self._items for context in todo.contexts]))
+        return sorted(set([context for task in self._items for context in task.contexts]))
 
     def all_projects(self):
-        return sorted(set([project for todo in self._items for project in todo.projects]))
+        return sorted(set([project for task in self._items for project in task.projects]))
 
     def get_items(self):
         return self._items
 
     def get_items_sorted(self, sort_by):
 
-        def due_prio(todo):
-            res = todo.due_date
+        def due_prio(task):
+            res = task.due_date
             if not res: res = "9999"
-            res += todo.raw
+            res += task.raw
             if not res: res = "z"
-            if todo.is_done(): res = "z" + res
+            if task.is_done(): res = "z" + res
             return res
 
-        def prio(todo):
-            return todo.raw
+        def prio(task):
+            return task.raw
 
         if sort_by == "due": return sorted(self._items, key=due_prio)
         elif sort_by == "prio": return sorted(self._items, key=prio)

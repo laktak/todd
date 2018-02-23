@@ -1,16 +1,16 @@
 # todd
 
-*todd* is an interactive console TODO manager with VI key bindings.
+*todd* is an interactive console TODO-list manager with VI key bindings.
 
 It provides a minimalistic interface with a view on your todo list, following in the spirit of spirit of [ranger](https://ranger.github.io/) and [mutt](http://www.mutt.org/).
 
-The file format conforms to [todo.txt](https://github.com/todotxt/todo.txt#readme). This means you have full control over your data and can choose to store it locally or in the cloud (like Dropbox). You can use different applications to access your todos on your desktop or mobile devices.
+The file format conforms to [todo.txt](https://github.com/todotxt/todo.txt#readme). This means you have full control over your data and can choose to store it locally or in the cloud (like Dropbox). You can use different applications to access your tasks on your desktop or mobile devices.
 
 Thanks to the creator and contributors of [todotxt-machine](https://github.com/AnthonyDiGirolamo/todotxt-machine/tree/04a0306ea30c2645f2474da5830852ccd8e49082) for providing the basis for this project.
 
 ## Features
 
-- View your todos in a column formatted list with relative due dates
+- View your tasks in a column formatted list with relative due dates
 - Switch context (only view tasks that you can work on)
 - Sort by due date or priority
 - Search/filter

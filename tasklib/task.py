@@ -1,10 +1,10 @@
 import re
 import datetime
-from todolib import Util
+from tasklib import Util
 
 
-class Todo:
-    """Todo item
+class Task:
+    """Task
 
     Format:
     x (A) 2000-01-01 2000-01-01 DESC
@@ -17,7 +17,7 @@ class Todo:
 
     Know key-value tags are
     - due:2000-01-01    due dates
-    - rec:1y            recurring todo
+    - rec:1y            recurring task
     """
 
     _priority_regex = re.compile(r"\(([A-Z])\) ")
@@ -41,51 +41,51 @@ class Todo:
     PLHR = u"\N{HORIZONTAL ELLIPSIS}"
     _plhr_regex = re.compile(PLHR + "[ " + PLHR + "]*")
 
-    def __init__(self, item, item_id):
-        self.item_id = item_id
+    def __init__(self, item, task_id):
+        self.task_id = task_id
         self.update(item)
 
     def update(self, text):
         self.raw = text.strip()
-        self.priority = Todo.scan_priority(self.raw)
-        self.contexts = Todo.scan_contexts(self.raw)
-        self.projects = Todo.scan_projects(self.raw)
-        self.done_date = Todo.scan_done_date(self.raw)
-        self.creation_date = Todo.scan_creation_date(self.raw)
-        self.due_date = Todo.scan_due_date(self.raw)
-        self.rec_int = Todo.scan_rec_int(self.raw)
+        self.priority = Task.scan_priority(self.raw)
+        self.contexts = Task.scan_contexts(self.raw)
+        self.projects = Task.scan_projects(self.raw)
+        self.done_date = Task.scan_done_date(self.raw)
+        self.creation_date = Task.scan_creation_date(self.raw)
+        self.due_date = Task.scan_due_date(self.raw)
+        self.rec_int = Task.scan_rec_int(self.raw)
 
     @staticmethod
     def scan_contexts(text):
-        return sorted(Todo._context_regex.findall(text))
+        return sorted(Task._context_regex.findall(text))
 
     @staticmethod
     def scan_projects(text):
-        return sorted(Todo._project_regex.findall(text))
+        return sorted(Task._project_regex.findall(text))
 
     @staticmethod
     def scan_creation_date(text):
-        match = Todo._creation_date_regex.search(text)
+        match = Task._creation_date_regex.search(text)
         return match.group(3) if match else ""
 
     @staticmethod
     def scan_due_date(text):
-        match = Todo._due_date_regex.search(text)
+        match = Task._due_date_regex.search(text)
         return match.group(1) if match else ""
 
     @staticmethod
     def scan_rec_int(text):
-        match = Todo._rec_int_regex.search(text)
+        match = Task._rec_int_regex.search(text)
         return match.group(1) if match else ""
 
     @staticmethod
     def scan_priority(text):
-        match = Todo._priority_regex.match(text)
+        match = Task._priority_regex.match(text)
         return match.group(1) if match else ""
 
     @staticmethod
     def scan_done_date(text):
-        match = Todo._done_regex.match(text)
+        match = Task._done_regex.match(text)
         return match.group(1) if match else ""
 
     @staticmethod
@@ -94,12 +94,12 @@ class Todo:
 
     @staticmethod
     def get_current_date_str(inc=0):
-        return Todo.get_current_date(inc).isoformat()
+        return Task.get_current_date(inc).isoformat()
 
     def __repr__(self):
         return repr({
             "raw": self.raw,
-            "item_id": self.item_id,
+            "task_id": self.task_id,
             "priority": self.priority,
             "done_date": self.done_date,
             "creation_date": self.creation_date,
@@ -114,7 +114,7 @@ class Todo:
         if new_priority:
             new_priority = "({}) ".format(new_priority)
 
-        # TODO
+        # Task
         if re.search(self._priority_regex, self.raw):
             self.raw = re.sub(self._priority_regex, "{}".format(new_priority), self.raw)
         elif re.search(r"^x \d{4}-\d{2}-\d{2}", self.raw):
@@ -133,12 +133,12 @@ class Todo:
             today = datetime.date.today()
             self.update("x " + today.isoformat() + " " + self.raw)
             if self.rec_int:
-                (prefix, value, itype) = Todo._rec_int_parts_regex.match(self.rec_int).groups()
+                (prefix, value, itype) = Task._rec_int_parts_regex.match(self.rec_int).groups()
                 value = int(value)
                 date = self.get_due() if prefix == "+" else today
                 return Util.date_add_interval(date, itype, value)
         else:
-            self.update(re.sub(Todo._done_regex, "", self.raw))
+            self.update(re.sub(Task._done_regex, "", self.raw))
 
     def get_status(self, sdate):
         if self.is_done(): return "done"
@@ -153,7 +153,7 @@ class Todo:
     def set_due(self, date):
         if type(date) is datetime.datetime: date = date.date()
         text = " due:" + date.isoformat()
-        if self.due_date: self.raw = re.sub(Todo._due_date_regex, text + " ", self.raw)
+        if self.due_date: self.raw = re.sub(Task._due_date_regex, text + " ", self.raw)
         else: self.raw += text
         self.update(self.raw)
 
@@ -162,16 +162,16 @@ class Todo:
 
     def set_creation_date(self, date):
         if type(date) is datetime.datetime: date = date.date()
-        self.raw = re.sub(Todo._creation_date_regex2, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
+        self.raw = re.sub(Task._creation_date_regex2, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
         self.update(self.raw)
 
     def get_desc(self):
         PLHR = u" \N{HORIZONTAL ELLIPSIS} "
         res = self.raw
         if self.creation_date != '':
-            res = re.sub(Todo._creation_date_regex, r"\1\2", res)
-        res = re.sub(Todo._due_date_regex, PLHR, res)
-        res = re.sub(Todo._rec_int_regex, PLHR, res)
-        res = re.sub(Todo._context_regex, PLHR, res)
-        res = re.sub(Todo._plhr_regex, PLHR, res)
+            res = re.sub(Task._creation_date_regex, r"\1\2", res)
+        res = re.sub(Task._due_date_regex, PLHR, res)
+        res = re.sub(Task._rec_int_regex, PLHR, res)
+        res = re.sub(Task._context_regex, PLHR, res)
+        res = re.sub(Task._plhr_regex, PLHR, res)
         return res.strip(PLHR)

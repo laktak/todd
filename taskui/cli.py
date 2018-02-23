@@ -20,9 +20,9 @@ import os
 from collections import OrderedDict
 from docopt import docopt
 
-import todolib
-from todolib import Todos
-from todoui import MainUI, ColorScheme, KeyBindings
+import tasklib
+from tasklib import Tasklist
+from taskui import MainUI, ColorScheme, KeyBindings
 
 
 # Import the correct version of configparser
@@ -75,7 +75,7 @@ def get_boolean_config_option(cfg, section, option, default=False):
 def main():
 
     # Parse command line
-    arguments = docopt(__doc__, version=todolib.version)
+    arguments = docopt(__doc__, version=tasklib.version)
 
     # Parse config file
     cfg = config_parser_module.ConfigParser(allow_no_value=True)
@@ -122,7 +122,7 @@ def main():
         donetxt_file_path = None
 
     try:
-        todos = Todos.open_file(todotxt_file_path, donetxt_file_path)
+        tasklist = Tasklist.open_file(todotxt_file_path, donetxt_file_path)
     except Exception:
         exit_with_error(
             "ERROR: unable to open {0}\n\nEither specify one as an argument on the " +
@@ -131,11 +131,11 @@ def main():
 
     enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")
 
-    view = MainUI(todos, keyBindings, colorscheme)
+    view = MainUI(tasklist, keyBindings, colorscheme)
     view.main(enable_word_wrap)  # start up the urwid UI event loop
 
     # Final save
-    view.todos.save()
+    view.tasklist.save()
 
     exit(0)
 

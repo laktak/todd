@@ -1,7 +1,7 @@
 import urwid
 
 from textwrap import dedent
-from todoui import ViListBox
+from taskui import ViListBox
 
 
 class MainHelp:
@@ -22,8 +22,8 @@ class MainHelp:
                 {2} - toggle word wrap
                 {3} - save current todo file
                 {4} - reload the todo file (discarding changes)
-                {5} - archive done items to done.txt
-                {6} - undo archive for the last item (repeat as required)
+                {5} - archive done tasks to done.txt
+                {6} - undo archive for the last task (repeat as required)
                 """).format(
                 key_bindings["toggle-help"].ljust(key_column_width),
                 key_bindings["quit"].ljust(key_column_width),
@@ -38,8 +38,8 @@ class MainHelp:
             [urwid.Text(dedent("""\
                 {0} - move selection down
                 {1} - move selection up
-                {2} - move selection to the top item
-                {3} - move selection to the bottom item
+                {2} - move selection to the top
+                {3} - move selection to the bottom
                 {4} - move focus between panels
                 {5}
                 """.format(
@@ -51,14 +51,14 @@ class MainHelp:
                 key_bindings["right"].ljust(key_column_width),
             )))] +
 
-            [urwid.AttrWrap(urwid.Text("Todo Items"), header_highlight)] +
+            [urwid.AttrWrap(urwid.Text("Tasks"), header_highlight)] +
             [urwid.Text(dedent("""\
-                {0} - add a new todo item
-                {1} - edit the selected item
-                {2} - higher priority
+                {0} - add a new task
+                {1} - edit the selected task
+                {2} - raise priority
                 {3} - lower priority
-                {4} - mark / unmark selected item done
-                {5} - delete the selected item
+                {4} - mark / unmark selected task done
+                {5} - delete the selected task
                 {6} - change due (add)
                 {7} - change due (subtract)
                 """.format(

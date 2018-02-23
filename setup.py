@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 
 from setuptools.command.test import test as TestCommand
 import sys
-import todolib
+import tasklib
 
 
 class PyTest(TestCommand):
@@ -37,17 +37,17 @@ except IOError:
 
 
 setup(name=NAME,
-      version=todolib.version,
+      version=tasklib.version,
       author="Christian Zangl",
       author_email="laktak@cdak.net",
       url="https://github.com/laktak/todd",
       description="An interactive terminal based todo.txt file editor",
       long_description=long_description,
       keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
-      packages=find_packages(exclude=["todolib/test*"]),
+      packages=find_packages(exclude=["tasklib/test*"]),
       include_package_data=True,
       entry_points={
-          "console_scripts": ["todd = todoui.cli:main"]
+          "console_scripts": ["todd = taskui.cli:main"]
       },
       classifiers=[
           "Development Status :: 4 - Beta",

@@ -1,17 +1,17 @@
 import os
 import urwid
 import collections
-from todolib import Todo, Todos, Util
-import todoui
+from tasklib import Task, Tasklist, Util
+import taskui
 
 
 class MainUI:
 
-    def __init__(self, todos, key_bindings, colorscheme):
+    def __init__(self, tasklist, key_bindings, colorscheme):
         self.wrapping = collections.deque(["clip", "space"])
         self.sort_order = collections.deque(["Due", "Prio"])
 
-        self.todos = todos
+        self.tasklist = tasklist
         self.items = None
         self.key_bindings = key_bindings
 
@@ -24,10 +24,10 @@ class MainUI:
         self.search_highlight = False
         self.search_string = ""
 
-        self.listbox = todoui.ViListBox(self.key_bindings, urwid.SimpleListWalker([]))
-        urwid.connect_signal(self.listbox.body, "modified", self.todo_list_updated)
+        self.listbox = taskui.ViListBox(self.key_bindings, urwid.SimpleListWalker([]))
+        urwid.connect_signal(self.listbox.body, "modified", self.task_list_updated)
         self.frame = urwid.Frame(urwid.AttrMap(self.listbox, "plain"), header=None, footer=None)
-        self.view = todoui.ViColumns(self.key_bindings, [("weight", 5, self.frame)])
+        self.view = taskui.ViColumns(self.key_bindings, [("weight", 5, self.frame)])
         self.help_panel = None
 
         self.loop = urwid.MainLoop(self.view, self.palette, unhandled_input=self.keystroke, handle_mouse=False)
@@ -35,15 +35,15 @@ class MainUI:
         # also see self.loop.widget
 
     def update_header(self, message=""):
-        today = Todo.get_current_date_str()
+        today = Task.get_current_date_str()
         self.frame.header = urwid.AttrMap(
             urwid.Columns([
                 urwid.Text([
-                    ("header_todo_count", "{0} Todos ".format(len(Todos.filter_pending(self.items)))),
-                    ("header_todo_due_count", " {0} due ".format(len(Todos.filter_due(self.items, today)))),
+                    ("header_task_count", "{0} Tasks ".format(len(Tasklist.filter_pending(self.items)))),
+                    ("header_task_due_count", " {0} due ".format(len(Tasklist.filter_due(self.items, today)))),
                     ("header_sort", " s:{0} ".format(self.sort_order[0])),
                 ]),
-                # urwid.Text(("header_file", "{0}  {1} ".format(message, self.todos.file_path)), align="right"),
+                # urwid.Text(("header_file", "{0}  {1} ".format(message, self.tasklist.file_path)), align="right"),
                 urwid.Text(("header_file", message), align="right"),
             ]), "header")
 
@@ -53,7 +53,7 @@ class MainUI:
             self.help_panel = None
             self.loop.widget = self.view
         else:
-            self.help_panel = todoui.MainHelp.create_help_panel(self.key_bindings)
+            self.help_panel = taskui.MainHelp.create_help_panel(self.key_bindings)
             self.loop.widget = urwid.Overlay(self.help_panel, self.view, "center", 70, "middle", ("relative", 90))
 
     def toggle_sort_order(self):
@@ -63,14 +63,14 @@ class MainUI:
 
     def toggle_context_panel(self):
         def create_context_panel():
-            allc = self.todos.all_contexts()
+            allc = self.tasklist.all_contexts()
 
-            self.context_list = todoui.ViListBox(self.key_bindings, urwid.SimpleListWalker(
+            self.context_list = taskui.ViListBox(self.key_bindings, urwid.SimpleListWalker(
                 [urwid.Divider()] +
                 [urwid.Text("Switch Context")] +
                 [urwid.Divider(u"─")] +
-                [urwid.AttrMap(todoui.MenuItem("(all)", self.toggle_context_panel), "dialog_color", "plain_selected")] +
-                [urwid.AttrMap(todoui.MenuItem([c[1:]], self.toggle_context_panel), "dialog_color", "plain_selected") for c in allc]
+                [urwid.AttrMap(taskui.MenuItem("(all)", self.toggle_context_panel), "dialog_color", "plain_selected")] +
+                [urwid.AttrMap(taskui.MenuItem([c[1:]], self.toggle_context_panel), "dialog_color", "plain_selected") for c in allc]
             ))
 
             if self.active_context:
@@ -92,15 +92,15 @@ class MainUI:
         self.wrapping.rotate(1)
         for item in self.listbox.body:
             item.wrapping = self.wrapping[0]
-            item.update_todo()
+            item.update_task()
 
     def update_footer(self, name):
         if name == "edit-help":
             self.frame.footer = urwid.AttrMap(urwid.Pile([
-                urwid.Text("Todo format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:2020-10-01)"),
+                urwid.Text("Task format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:2020-10-01)"),
             ]), "footer")
         elif name == "search":
-            search_box = todoui.EntryWidget(self.search_string, self.commit_search)
+            search_box = taskui.EntryWidget(self.search_string, self.commit_search)
             self.frame.footer = urwid.AttrMap(urwid.Columns([
                 (1, urwid.Text("/")),
                 search_box,
@@ -108,7 +108,7 @@ class MainUI:
             urwid.connect_signal(search_box, "change", self.search_updated)
             self.frame.set_focus("footer")
         elif name == "due" or name == "due-":
-            edit_box = todoui.EntryWidget("" if name == "due" else "-", self.commit_due)
+            edit_box = taskui.EntryWidget("" if name == "due" else "-", self.commit_due)
             self.frame.footer = urwid.AttrMap(urwid.Pile([
                 urwid.Columns([(17, urwid.Text("adjust due date:")), edit_box]),
                 urwid.Text(
@@ -119,47 +119,47 @@ class MainUI:
         else:
             self.frame.footer = None
 
-    def select_by_id(self, item_id):
+    def select_by_id(self, task_id):
         for i in range(len(self.listbox.body)):
-            if self.listbox.body[i].todo.item_id == item_id:
+            if self.listbox.body[i].task.task_id == task_id:
                 self.listbox.set_focus(i)
                 return
         self.listbox.move_top()
 
-    def save_todos(self):
-        self.todos.save()
+    def save_tasklist(self):
+        self.tasklist.save()
         self.update_header("Saved")
 
-    def archive_done_todos(self):
-        self.todos.archive_done()
+    def archive_done(self):
+        self.tasklist.archive_done()
         self.fill_listbox()
         self.listbox.move_top()
 
     def archive_undo(self):
-        t = self.todos.undo_archive()
+        t = self.tasklist.undo_archive()
         self.fill_listbox()
-        self.select_by_id(t.item_id)
+        self.select_by_id(t.task_id)
 
-    def reload_todos_from_file(self):
-        self.todos.reload()
+    def reload_tasklist_from_file(self):
+        self.tasklist.reload()
         self.fill_listbox()
         self.update_header("Reloaded")
 
     # called by watcher
     def file_updated(self, dummy):
-        if self.todos.has_file_changed():
-            self.reload_todos_from_file()
+        if self.tasklist.has_file_changed():
+            self.reload_tasklist_from_file()
 
-    def todo_list_updated(self):
+    def task_list_updated(self):
         self.update_header()
 
     def adjust_priority(self, focus, mod):
         assert mod in [1, -1]
         priorities = ["A", "B", "C", "D", "E", "F", ""]
         lp = len(priorities)
-        new_prio = (priorities.index(focus.todo.priority) + lp + mod) % lp
-        focus.todo.set_priority(priorities[new_prio])
-        focus.update_todo()
+        new_prio = (priorities.index(focus.task.priority) + lp + mod) % lp
+        focus.task.set_priority(priorities[new_prio])
+        focus.update_task()
 
     def change_due(self, focus, add=True):
         self.update_footer("due" if add else "due-")
@@ -169,55 +169,55 @@ class MainUI:
         self.update_footer("")
         focus, _ = self.listbox.get_focus()
         try:
-            due = focus.todo.get_due() or Todo.get_current_date()
+            due = focus.task.get_due() or Task.get_current_date()
             due = Util.date_add_interval_str(due, text)
-            focus.todo.set_due(due)
-            self.todos.save()
+            focus.task.set_due(due)
+            self.tasklist.save()
             self.fill_listbox()
         except Exception:
             self.update_header("Invalid format!")
 
-    def add_new_todo(self):
-        todo = self.todos.append_text("")
-        todo.set_creation_date(Todo.get_current_date())
-        t = todoui.TodoItem(todo, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
+    def add_new_task(self):
+        task = self.tasklist.append_text("")
+        task.set_creation_date(Task.get_current_date())
+        t = taskui.TaskItem(task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
-        self.edit_todo()
+        self.edit_task()
 
-    def edit_todo(self):
+    def edit_task(self):
         self.update_footer("edit-help")
         focus, _ = self.listbox.get_focus()
         focus.edit_item()
 
-    def todo_changed(self):
+    def task_changed(self):
         # finished editing
         self.update_footer("")
-        self.todos.save()
+        self.tasklist.save()
         self.fill_listbox()
 
     def toggle_done(self, focus):
-        t = focus.todo
+        t = focus.task
         if t.is_done():
             t.set_done(False)
-            self.todos.save()
+            self.tasklist.save()
         else:
             rec = t.set_done()
             if rec:
-                self.todos.append_text(t.raw)
+                self.tasklist.append_text(t.raw)
                 t.set_done(False)
                 t.set_due(rec)
             else:
                 self.listbox.move_offs(1)
-            self.todos.archive_done()  # does save
+            self.tasklist.archive_done()  # does save
 
         self.fill_listbox()
 
-    def delete_todo(self, focus):
-        if self.todos.get_items():
+    def delete_task(self, focus):
+        if self.tasklist.get_items():
             self.listbox.move_offs(1)
-            self.todos.delete_by_id(focus.todo.item_id)
-            self.todos.save()
+            self.tasklist.delete_by_id(focus.task.task_id)
+            self.tasklist.save()
             self.fill_listbox()
 
     def start_search(self):
@@ -232,7 +232,7 @@ class MainUI:
     def commit_search(self, text):
         self.frame.set_focus("body")
         self.search_highlight = False
-        if not Todos.prep_search(self.search_string):
+        if not Tasklist.prep_search(self.search_string):
             self.search_string = ""
             self.update_footer("")
         self.fill_listbox()
@@ -255,24 +255,24 @@ class MainUI:
     def fill_listbox(self):
         # clear
         focus, _ = self.listbox.get_focus()
-        last_id = focus.todo.item_id if focus else -1
+        last_id = focus.task.task_id if focus else -1
 
         sort_by = self.sort_order[0]
-        items = self.todos.get_items_sorted(sort_by.lower())
+        items = self.tasklist.get_items_sorted(sort_by.lower())
 
         if self.active_context:
-            items = Todos.filter_context(items, self.active_context)
+            items = Tasklist.filter_context(items, self.active_context)
 
         search = None
         if self.search_string != "":
-            search = Todos.prep_search(self.search_string)
-            items = Todos.search(search, items)
+            search = Tasklist.prep_search(self.search_string)
+            items = Tasklist.search(search, items)
             if not self.search_highlight: search = None
 
         self.items = items
         self.listbox.body.clear()
         self.listbox.body.extend(
-            [todoui.TodoItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
+            [taskui.TaskItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
 
         self.select_by_id(last_id)
         self.update_header()
@@ -297,19 +297,19 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "search-clear"): self.clear_search_term()
 
         # Editing
-        elif self.key_bindings.is_bound_to(key, "new"): self.add_new_todo()
-        elif self.key_bindings.is_bound_to(key, "edit"): self.edit_todo()
+        elif self.key_bindings.is_bound_to(key, "new"): self.add_new_task()
+        elif self.key_bindings.is_bound_to(key, "edit"): self.edit_task()
         elif self.key_bindings.is_bound_to(key, "toggle-done"): self.toggle_done(focus)
-        elif self.key_bindings.is_bound_to(key, "delete"): self.delete_todo(focus)
+        elif self.key_bindings.is_bound_to(key, "delete"): self.delete_task(focus)
         elif self.key_bindings.is_bound_to(key, "priority-higher"): self.adjust_priority(focus, 1)
         elif self.key_bindings.is_bound_to(key, "priority-lower"): self.adjust_priority(focus, -1)
         elif self.key_bindings.is_bound_to(key, "add-due"): self.change_due(focus, True)
         elif self.key_bindings.is_bound_to(key, "subtract-due"): self.change_due(focus, False)
 
-        elif self.key_bindings.is_bound_to(key, "archive"): self.archive_done_todos()
+        elif self.key_bindings.is_bound_to(key, "archive"): self.archive_done()
         elif self.key_bindings.is_bound_to(key, "undo-archive"): self.archive_undo()
-        elif self.key_bindings.is_bound_to(key, "save"): self.save_todos()
-        elif self.key_bindings.is_bound_to(key, "reload"): self.reload_todos_from_file()
+        elif self.key_bindings.is_bound_to(key, "save"): self.save_tasklist()
+        elif self.key_bindings.is_bound_to(key, "reload"): self.reload_tasklist_from_file()
 
     def main(self, enable_word_wrap=False):
 
@@ -323,6 +323,6 @@ class MainUI:
         def piper():
             os.write(pipe, b'updated')  # trigger file_updated
 
-        self.todos.watch(piper)
+        self.tasklist.watch(piper)
         self.loop.run()
-        self.todos.stop_watch()
+        self.tasklist.stop_watch()

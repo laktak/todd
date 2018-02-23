@@ -1,4 +1,4 @@
 #!/usr/bin/env python
-import todoui.cli
+import taskui.cli
 
-todoui.cli.main()
+taskui.cli.main()
