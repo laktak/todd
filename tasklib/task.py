@@ -162,7 +162,8 @@ class Task:
 
     def set_creation_date(self, date):
         if type(date) is datetime.datetime: date = date.date()
-        self.raw = re.sub(Task._creation_date_regex2, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
+        regex = Task._creation_date_regex if self.creation_date != "" else Task._creation_date_regex2
+        self.raw = re.sub(regex, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
         self.update(self.raw)
 
     def get_desc(self):

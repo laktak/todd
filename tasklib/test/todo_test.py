@@ -5,11 +5,16 @@ from tasklib import *
 import pprint
 pp = pprint.PrettyPrinter(indent=4).pprint
 
-TODO_COWS="Buy some cows +project-x @farm"
-TODO_FLUX="(A) Build a flux capacitor +future @weekend"
-TODO_TRASH="(F) 2000-01-01 Take out the trash @home due:2018-02-21"
-TODO_DONE="x 1999-01-07 Book a ticket to mars +project-x +future"
-TODO_PLAN="Plan our summer vacation +family @weekend"
+TODO_COWS = "Buy some cows +project-x @farm"
+TODO_FLUX_PRIO = "(A)"
+TODO_FLUX_TEXT = "Build a flux capacitor +future @weekend"
+TODO_FLUX = TODO_FLUX_PRIO + " " + TODO_FLUX_TEXT
+TODO_TRASH_PRIO = "(F)"
+TODO_TRASH_TEXT = "Take out the trash @home due:2018-02-21"
+TODO_TRASH = TODO_TRASH_PRIO + " 2000-01-01 " + TODO_TRASH_TEXT
+TODO_DONE = "x 1999-01-07 Book a ticket to mars +project-x +future"
+TODO_PLAN_TEXT = "Plan our summer vacation +family @weekend"
+TODO_PLAN = "2001-02-03 " + TODO_PLAN_TEXT
 
 @pytest.fixture
 def tasklist():
@@ -120,10 +125,10 @@ def test_tasklist_sorted(tasklist):
     assert [task.task_id for task in tasklist.get_items()] == [6, 7, 8, 9, 10]
 
     assert [task.task_id for task in tasklist.get_items_sorted("due")] == [
-        8, 6, 7, 10, 9]
+        8, 6, 10, 7, 9]
 
     assert [task.task_id for task in tasklist.get_items_sorted("prio")] == [
-        6, 8, 7, 10, 9]
+        6, 8, 10, 7, 9]
 
 def test_tasklist_filter_context(tasklist):
     assert [t.task_id for t in Tasklist.filter_context(tasklist.get_items(), "@weekend")] == [
@@ -147,13 +152,13 @@ def test_tasklist_set_done(tasklist, today):
     tasklist[1].set_done()
     assert [t.raw for t in tasklist] == [
         "x {} {}".format(today, TODO_COWS),
-        "x {} {}".format(today, TODO_FLUX[4:]),
+        "x {} {}".format(today, TODO_FLUX_TEXT),
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN]
     assert [t.is_done() for t in tasklist] == [True, True, False, True, False]
     tasklist[1].set_done(False)
-    assert tasklist[1].raw == TODO_FLUX[4:]
+    assert tasklist[1].raw == TODO_FLUX_TEXT
     assert tasklist[1].done_date == ""
 
 def test_task_undo(tasklist):
@@ -183,11 +188,14 @@ def test_task_set_creation_date(tasklist, today):
     assert tasklist[0].raw == "{} {}".format(today, TODO_COWS)
     assert tasklist[0].creation_date == today.isoformat()
     tasklist[1].set_creation_date(today)
-    assert tasklist[1].raw == "{} {} {}".format(TODO_FLUX[:3], today, TODO_FLUX[4:])
+    assert tasklist[1].raw == "{} {} {}".format(TODO_FLUX_PRIO, today, TODO_FLUX_TEXT)
     assert tasklist[1].creation_date == today.isoformat()
     tasklist[2].set_creation_date(today)
-    assert tasklist[2].raw == "{} {} {}".format(TODO_TRASH[:3], today, TODO_TRASH[4:])
+    assert tasklist[2].raw == "{} {} {}".format(TODO_TRASH_PRIO, today, TODO_TRASH_TEXT)
     assert tasklist[2].creation_date == today.isoformat()
+    tasklist[4].set_creation_date(today)
+    assert tasklist[4].raw == "{} {}".format(today, TODO_PLAN_TEXT)
+    assert tasklist[4].creation_date == today.isoformat()
 
 def test_tasklist_append(tasklist, today):
     tasklist.append_text("THIS IS A TEST @testing")
@@ -240,4 +248,4 @@ def test_set_priority(tasklist):
     tasklist[0].set_priority("")
     assert tasklist[0].raw == TODO_COWS
     tasklist[1].set_priority("")
-    assert tasklist[1].raw == TODO_FLUX[4:]
+    assert tasklist[1].raw == TODO_FLUX_TEXT

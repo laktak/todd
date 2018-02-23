@@ -202,14 +202,16 @@ class MainUI:
             t.set_done(False)
             self.tasklist.save()
         else:
+            last = t.raw
             rec = t.set_done()
             if rec:
                 self.tasklist.append_text(t.raw)
-                t.set_done(False)
+                t.update(last)
                 t.set_due(rec)
+                t.set_creation_date(Task.get_current_date())
             else:
                 self.listbox.move_offs(1)
-            self.tasklist.archive_done()  # does save
+            self.tasklist.archive_done()  # saves
 
         self.fill_listbox()
 
