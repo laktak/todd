@@ -156,9 +156,9 @@ class MainUI:
     def adjust_priority(self, focus, mod):
         assert mod in [1, -1]
         priorities = ["A", "B", "C", "D", "E", "F", ""]
-        l = len(priorities)
-        new_prio = (priorities.index(focus.todo.priority) + l + mod) % l
-        focus.todo.change_priority(priorities[new_prio])
+        lp = len(priorities)
+        new_prio = (priorities.index(focus.todo.priority) + lp + mod) % lp
+        focus.todo.set_priority(priorities[new_prio])
         focus.update_todo()
 
     def change_due(self, focus, add=True):
@@ -179,6 +179,7 @@ class MainUI:
 
     def add_new_todo(self):
         todo = self.todos.append_text("")
+        todo.set_creation_date(Todo.get_current_date())
         t = todoui.TodoItem(todo, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
@@ -208,14 +209,14 @@ class MainUI:
                 t.set_due(rec)
             else:
                 self.listbox.move_offs(1)
-            self.todos.archive_done() # does save
+            self.todos.archive_done()  # does save
 
         self.fill_listbox()
 
     def delete_todo(self, focus):
         if self.todos.get_items():
             self.listbox.move_offs(1)
-            self.todos.delete(focus.todo.item_id)
+            self.todos.delete_by_id(focus.todo.item_id)
             self.todos.save()
             self.fill_listbox()
 
@@ -253,7 +254,7 @@ class MainUI:
 
     def fill_listbox(self):
         # clear
-        focus, focus_index = self.listbox.get_focus()
+        focus, _ = self.listbox.get_focus()
         last_id = focus.todo.item_id if focus else -1
 
         sort_by = self.sort_order[0]
@@ -283,7 +284,7 @@ class MainUI:
                 self.key_bindings.is_bound_to(key, "toggle-help"): self.toggle_help_panel()
             return
 
-        focus, focus_index = self.listbox.get_focus()
+        focus, _ = self.listbox.get_focus()
 
         if self.key_bindings.is_bound_to(key, "quit"): raise urwid.ExitMainLoop()
 

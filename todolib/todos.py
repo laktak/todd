@@ -102,6 +102,11 @@ class Todos:
             for todo in text_items if todo.strip() != ""
         ]
 
+    def get_index(self, item_id):
+        for i in range(len(self._items)):
+            if self._items[i].item_id == item_id:
+                return i
+
     def append_text(self, text_item):
         return self.insert_text(len(self._items), text_item)
 
@@ -110,8 +115,10 @@ class Todos:
         self._items.insert(index, todo)
         return todo
 
-    def delete(self, index):
-        del self._items[index]
+    def delete_by_id(self, item_id):
+        index = self.get_index(item_id)
+        if index is not None:
+            del self._items[index]
 
     def __iter__(self):
         self.index = -1

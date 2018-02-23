@@ -1,5 +1,5 @@
 import pytest
-from datetime import date
+import datetime
 from todolib import *
 
 import pprint
@@ -7,7 +7,7 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 TODO_COWS="Buy some cows +project-x @farm"
 TODO_FLUX="(A) Build a flux capacitor +future @weekend"
-TODO_TRASH="(F) Take out the trash @home due:2018-02-21"
+TODO_TRASH="(F) 2000-01-01 Take out the trash @home due:2018-02-21"
 TODO_DONE="x 1999-01-07 Book a ticket to mars +project-x +future"
 TODO_PLAN="Plan our summer vacation +family @weekend"
 
@@ -23,7 +23,7 @@ def todos():
 
 @pytest.fixture
 def today():
-    return date.today()
+    return datetime.date.today()
 
 def test_todos_init(todos):
     assert len(todos) == 5
@@ -47,6 +47,7 @@ def test_todos_parse_entries(todos):
     assert todo.contexts == ["@home"]
     assert todo.projects == []
     assert todo.due_date == "2018-02-21"
+    assert todo.creation_date == "2000-01-01"
     assert todo.priority == "F"
 
     todo = todos.get_items()[3]
@@ -133,25 +134,26 @@ def test_todos_set_items(todos):
         TODO_FLUX,
         TODO_TRASH,
         TODO_DONE,
-        TODO_PLAN])
+        "2000-01-02 " + TODO_PLAN])
     assert [t.raw for t in todos] == [
         TODO_FLUX,
         TODO_TRASH,
         TODO_DONE,
-        TODO_PLAN]
+        "2000-01-02 " + TODO_PLAN]
+    assert todos[3].creation_date == "2000-01-02"
 
 def test_todos_set_done(todos, today):
     todos[0].set_done()
     todos[1].set_done()
     assert [t.raw for t in todos] == [
         "x {} {}".format(today, TODO_COWS),
-        "x {} {}".format(today, TODO_FLUX),
+        "x {} {}".format(today, TODO_FLUX[4:]),
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN]
     assert [t.is_done() for t in todos] == [True, True, False, True, False]
     todos[1].set_done(False)
-    assert todos[1].raw == TODO_FLUX
+    assert todos[1].raw == TODO_FLUX[4:]
     assert todos[1].done_date == ""
 
 def test_todo_undo(todos):
@@ -176,10 +178,16 @@ def test_todo_is_done(todos):
         False,
         True]
 
-def test_todo_add_creation_date(todos, today):
-    todos[2].add_creation_date()
+def test_todo_set_creation_date(todos, today):
+    todos[0].set_creation_date(today)
+    assert todos[0].raw == "{} {}".format(today, TODO_COWS)
+    assert todos[0].creation_date == today.isoformat()
+    todos[1].set_creation_date(today)
+    assert todos[1].raw == "{} {} {}".format(TODO_FLUX[:3], today, TODO_FLUX[4:])
+    assert todos[1].creation_date == today.isoformat()
+    todos[2].set_creation_date(today)
     assert todos[2].raw == "{} {} {}".format(TODO_TRASH[:3], today, TODO_TRASH[4:])
-    assert todos[2].creation_date == "{}".format(today)
+    assert todos[2].creation_date == today.isoformat()
 
 def test_todos_append(todos, today):
     todos.append_text("THIS IS A TEST @testing")
@@ -194,14 +202,14 @@ def test_todos_append(todos, today):
     assert [todo.item_id for todo in todos.get_items()] == [1, 2, 3, 4, 5, 6]
 
 def test_todos_delete(todos):
-    todos.delete(0)
+    todos.delete_by_id(1)
     assert [t.raw for t in todos] == [
         TODO_FLUX,
         TODO_TRASH,
         TODO_DONE,
         TODO_PLAN]
     assert [todo.item_id for todo in todos.get_items()] == [2, 3, 4, 5]
-    todos.delete(3)
+    todos.delete_by_id(5)
     assert [t.raw for t in todos] == [
         TODO_FLUX,
         TODO_TRASH,
@@ -226,8 +234,10 @@ def test_todos_search(todos):
         TODO_FLUX,
         TODO_DONE]
 
-def test_change_priority(todos):
-    todos[0].change_priority("F")
+def test_set_priority(todos):
+    todos[0].set_priority("F")
     assert todos[0].raw == "(F) " + TODO_COWS
-    todos[0].change_priority("")
+    todos[0].set_priority("")
     assert todos[0].raw == TODO_COWS
+    todos[1].set_priority("")
+    assert todos[1].raw == TODO_FLUX[4:]

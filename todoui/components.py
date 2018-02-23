@@ -73,7 +73,10 @@ class ViListBox(urwid.ListBox):
 
     def move_offs(self, offs):
         w, pos = self.get_focus()
-        self.set_focus(pos + offs)
+        try:
+            self.set_focus(pos + offs)
+        except Exception:
+            pass
 
     def keypress(self, size, key):
         key = super(ViListBox, self).keypress(size, key)
