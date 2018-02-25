@@ -8,7 +8,9 @@ class Util:
     _interval_parts_regex = re.compile(r"([+-])?(\d+)([dwmy]?)")
     delta0 = datetime.timedelta(days=0)
     delta1 = datetime.timedelta(days=1)
+    delta7 = datetime.timedelta(days=7)
     delta30 = datetime.timedelta(days=30)
+    WDAY = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
     @staticmethod
     def date_add_interval(date, t, value):
@@ -53,9 +55,11 @@ class Util:
         v = date - today
         if v < Util.delta0:
             if v == -Util.delta1: return "yesterday"
+            elif v >= -Util.delta7: return "last " + Util.WDAY[date.weekday()][:3]
             elif v >= -Util.delta30: return "{0} days ago".format(-v.days)
             return date.isoformat()
         elif v == Util.delta0: return "today"
         elif v == Util.delta1: return "tomorrow"
+        elif v <= Util.delta7: return Util.WDAY[date.weekday()]
         elif v <= Util.delta30: return "in {0} days".format(v.days)
         else: return date.isoformat()

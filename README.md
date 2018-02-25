@@ -16,12 +16,9 @@ Thanks to the creator and contributors of [todotxt-machine](https://github.com/A
 - Search/filter
 - Edit in plain text with tab completion or adjust priority and due
 
-## Requirements
-
-Python 3.6 on Linux or macOS
-[urwid](http://excess.org/urwid/)
-
 ## Installation
+
+Supports Python 3.6 on Linux or macOS.
 
 ### Using [pip](https://pypi.python.org/pypi/pip)
 
@@ -31,8 +28,9 @@ Python 3.6 on Linux or macOS
 
 Download or clone this repo and run the `todd.py` script.
 
-    git clone https://github.com/laktak/todd.git
+    git clone https://github.com/laktak/todd
     cd todd
+    pip install -r requirements.txt
     ./todd.py
 
 ## Command Line Options

@@ -76,7 +76,7 @@ class MainUI:
             if self.active_context:
                 for idx, c in enumerate(allc):
                     if c == self.active_context:
-                        self.context_list.body.set_focus(idx + 3)
+                        self.context_list.body.set_focus(idx + 4)
             urwid.connect_signal(self.context_list.body, "modified", self.context_list_updated)
             return urwid.AttrMap(urwid.Padding(self.context_list, left=1, right=1, min_width=10), "dialog_color")
 

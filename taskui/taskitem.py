@@ -1,6 +1,6 @@
 import urwid
 from tasklib import Task, Tasklist, Util
-from taskui import AdvancedEdit
+from urwid_viedit import ViEdit
 
 
 class TaskItem(urwid.Button):
@@ -55,8 +55,7 @@ class TaskItem(urwid.Button):
 
     def edit_item(self):
         self.editing = True
-        self.edit_widget = AdvancedEdit(self.parent_ui, self.key_bindings, caption="", edit_text=self.task.raw)
-        self.edit_widget.setCompletionMethod(self.completions)
+        self.edit_widget = ViEdit(caption="", edit_text=self.task.raw, completion_cb=self.completions)
         self._w = urwid.AttrMap(self.edit_widget, "plain_selected")
 
     def completions(self, text, completion_data={}):

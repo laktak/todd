@@ -72,33 +72,6 @@ class MainHelp:
                 key_bindings["subtract-due"].ljust(key_column_width),
             )))] +
 
-            [urwid.AttrWrap(urwid.Text("While Editing a Todo"), header_highlight)] +
-            [urwid.Text(dedent("""\
-                {0} - tab complete contexts and projects
-                {1} - move cursor left
-                {2} - move cursor right
-                {3} - move cursor backwards (left) by one word
-                {4} - move cursor forwards (right) by one word
-                {5} - move cursor the beginning of the line
-                {6} - move cursor the end of the line
-                {7} - delete one word backwards
-                {8} - delete from the cursor to the end of the line
-                {9} - delete from the cursor to the beginning of the line
-                {10} - paste last deleted text
-                """.format(
-                key_bindings["edit-complete"].ljust(key_column_width),
-                key_bindings["edit-move-left"].ljust(key_column_width),
-                key_bindings["edit-move-right"].ljust(key_column_width),
-                key_bindings["edit-word-left"].ljust(key_column_width),
-                key_bindings["edit-word-right"].ljust(key_column_width),
-                key_bindings["edit-home"].ljust(key_column_width),
-                key_bindings["edit-end"].ljust(key_column_width),
-                key_bindings["edit-delete-word"].ljust(key_column_width),
-                key_bindings["edit-delete-end"].ljust(key_column_width),
-                key_bindings["edit-delete-beginning"].ljust(key_column_width),
-                key_bindings["edit-paste"].ljust(key_column_width),
-            )))] +
-
             [urwid.AttrWrap(urwid.Text("Search & Sort"), header_highlight)] +
             [urwid.Text(dedent("""\
                 {0} - switch context
