@@ -40,15 +40,15 @@ class MainHelp:
                 {1} - move selection up
                 {2} - move selection to the top
                 {3} - move selection to the bottom
-                {4} - move focus between panels
-                {5}
+                {4} - move page down
+                {5} - move page up
                 """.format(
                 key_bindings["down"].ljust(key_column_width),
                 key_bindings["up"].ljust(key_column_width),
                 key_bindings["home"].ljust(key_column_width),
                 key_bindings["end"].ljust(key_column_width),
-                key_bindings["left"].ljust(key_column_width),
-                key_bindings["right"].ljust(key_column_width),
+                key_bindings["page-down"].ljust(key_column_width),
+                key_bindings["page-up"].ljust(key_column_width),
             )))] +
 
             [urwid.AttrWrap(urwid.Text("Tasks"), header_highlight)] +
