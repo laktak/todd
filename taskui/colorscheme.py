@@ -1,13 +1,5 @@
 import os
-import sys
-
-# Import the correct version of configparser
-if sys.version_info[0] >= 3:
-    import configparser
-    config_parser_module = configparser
-elif sys.version_info[0] < 3:
-    import ConfigParser
-    config_parser_module = ConfigParser
+import configparser
 
 
 class ColorScheme:
@@ -28,7 +20,7 @@ class ColorScheme:
             self.colors = dict(self.user_config.items(colorscheme_section))
         else:
             # Try to load a built in theme
-            cfg = config_parser_module.ConfigParser()
+            cfg = configparser.ConfigParser()
             if name in os.listdir(self.built_in_colors_directory):
                 cfg.read(self.built_in_colors_directory + "/" + name)
             # Load default theme

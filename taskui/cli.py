@@ -12,26 +12,19 @@ Options:
   -h --help                           Show this screen.
   --version                           Show version.
   --show-default-bindings             Show default keybindings in config parser format
-                                      Add this to your config file and edit to customize
 """
 
 import sys
+
+if sys.version_info < (3, 6):
+    sys.exit('Python < 3.6 is not supported')
+
 import os
 from collections import OrderedDict
 from docopt import docopt
-
 import tasklib
-from tasklib import Tasklist
 from taskui import MainUI, ColorScheme, KeyBindings
-
-
-# Import the correct version of configparser
-if sys.version_info[0] >= 3:
-    import configparser
-    config_parser_module = configparser
-elif sys.version_info[0] < 3:
-    import ConfigParser
-    config_parser_module = ConfigParser
+import configparser
 
 
 def exit_with_error(message):
@@ -78,7 +71,7 @@ def main():
     arguments = docopt(__doc__, version=tasklib.version)
 
     # Parse config file
-    cfg = config_parser_module.ConfigParser(allow_no_value=True)
+    cfg = configparser.ConfigParser(allow_no_value=True)
     cfg.add_section("keys")
 
     if arguments["--show-default-bindings"]:
@@ -122,7 +115,7 @@ def main():
         donetxt_file_path = None
 
     try:
-        tasklist = Tasklist.open_file(todotxt_file_path, donetxt_file_path)
+        tasklist = tasklib.Tasklist.open_file(todotxt_file_path, donetxt_file_path)
     except Exception:
         exit_with_error(
             "ERROR: unable to open {0}\n\nEither specify one as an argument on the " +

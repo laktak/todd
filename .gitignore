@@ -2,3 +2,4 @@ README.rst
 dist/
 .cache/
 *.egg-info/
+*.pyc

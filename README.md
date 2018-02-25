@@ -26,36 +26,40 @@ Supports Python 3.6 on Linux or macOS.
 
 ### Using [pip](https://pypi.python.org/pypi/pip)
 
-    pip install todd
+```
+pip3 install todd
+```
+
+(Or `pip install todd` if Python 3 is the default for your system.)
 
 ### Manually
 
 Download or clone this repo and run the `todd.py` script.
 
-    git clone https://github.com/laktak/todd
-    cd todd
-    pip install -r requirements.txt
-    ./todd.py
+```
+git clone https://github.com/laktak/todd
+cd todd
+pip3 install -r requirements.txt
+./todd.py
+```
 
 ## Command Line Options
 
-    todd
+```
+todd
 
-    Usage:
-      todd
-      todd TODOFILE [DONEFILE]
-      todd [--config FILE]
-      todd (-h | --help)
-      todd --version
-      todd --show-default-bindings
+Usage:
+  todd [--config FILE] [TODOFILE] [DONEFILE]
+  todd (-h | --help)
+  todd --version
+  todd --show-default-bindings
 
-    Options:
-      -c FILE --config=FILE               Path to your todd configuraton file [default: ~/.toddrc]
-      -h --help                           Show this screen.
-      --version                           Show version.
-      --show-default-bindings             Show default keybindings in config parser format
-                                          Add this to your config file and edit to customize
-
+Options:
+  -c FILE --config=FILE               Path to your todd configuraton file [default: ~/.toddrc]
+  -h --help                           Show this screen.
+  --version                           Show version.
+  --show-default-bindings             Show default keybindings in config parser format
+```
 
 
 ## Config File
