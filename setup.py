@@ -8,11 +8,19 @@ todd
 """
 
 from setuptools import setup, find_packages
-
 from setuptools.command.test import test as TestCommand
+import os
 import sys
-import tasklib
 
+
+from setuptools import setup, find_packages
+
+version = None
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tasklib', '__init__.py')) as fd:
+    for line in fd:
+        if line.startswith('version'):
+            version = line.split()[-1].strip("\"")
+if not version: raise Exception("Missing version!")
 
 class PyTest(TestCommand):
 
@@ -37,7 +45,7 @@ except IOError:
 
 
 setup(name=NAME,
-      version=tasklib.version,
+      version=version,
       author="Christian Zangl",
       author_email="laktak@cdak.net",
       url="https://github.com/laktak/todd",
@@ -60,6 +68,6 @@ setup(name=NAME,
           "Programming Language :: Python :: 3.6",
           "Topic :: Office/Business :: Scheduling",
       ],
-      install_requires=["setuptools", "docopt>=0.6.2", "urwid>=1.2.1"],
+      install_requires=["setuptools", "docopt>=0.6.2", "urwid>=1.3.0", "urwid_viedit>=0.1.0", "watchdog>=0.8.3"],
       tests_require=["pytest"],
       cmdclass={"test": PyTest})
