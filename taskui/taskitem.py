@@ -1,5 +1,5 @@
 import urwid
-from tasklib import Task, Tasklist, Util
+from tasklib import Tasklist, Util
 from urwid_viedit import ViEdit
 
 
@@ -24,14 +24,14 @@ class TaskItem(urwid.Button):
             text = urwid.Text(show, wrap=self.wrapping)
         else:
             t = self.task
-            today = Task.get_current_date()
+            today = Util.get_today()
             status = t.get_status(today.isoformat())
             status_col = "status_" + status
             if t.is_done(): text_col = status_col
             elif t.priority and t.priority.lower() in "abcdef": text_col = "priority_" + t.priority.lower()
             else: text_col = "plain"
 
-            due_name = Util.get_date_name(t.get_due(), today)
+            due_name = Util.get_date_name(t.get_due(), today=today)
             if t.rec_int:
                 if t.rec_int[0] == "+": rec_text = "every " + t.rec_int[1:]
                 else: rec_text = "after " + t.rec_int

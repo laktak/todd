@@ -1,7 +1,7 @@
 import os
 import urwid
 import collections
-from tasklib import Task, Tasklist, Util
+from tasklib import Tasklist, Util
 import taskui
 
 
@@ -35,7 +35,7 @@ class MainUI:
         # also see self.loop.widget
 
     def update_header(self, message=""):
-        today = Task.get_current_date_str()
+        today = Util.get_today_str()
         self.frame.header = urwid.AttrMap(
             urwid.Columns([
                 urwid.Text([
@@ -97,7 +97,7 @@ class MainUI:
     def update_footer(self, name):
         if name == "edit-help":
             self.frame.footer = urwid.AttrMap(urwid.Pile([
-                urwid.Text("Task format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:2020-10-01)"),
+                urwid.Text("Task format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:mon or due:2020-10-01)"),
             ]), "footer")
         elif name == "search":
             search_box = taskui.EntryWidget(self.search_string, self.commit_search)
@@ -111,9 +111,9 @@ class MainUI:
             edit_box = taskui.EntryWidget("" if name == "due" else "-", self.commit_due)
             self.frame.footer = urwid.AttrMap(urwid.Pile([
                 urwid.Columns([(17, urwid.Text("adjust due date:")), edit_box]),
-                urwid.Text(
-                    "Specify as <number><interval> where interval is d, m or y (days, months, years) like 7d, -2m or +5y.",
-                    align="right"),
+                urwid.Text((
+                    "plain",
+                    "Add/subtract days, months and years like 7d, -2m or 5y. Also accepts mo, tu, .. su or to(morrow).")),
             ]), "footer")
             self.frame.set_focus("footer")
         else:
@@ -169,8 +169,8 @@ class MainUI:
         self.update_footer("")
         focus, _ = self.listbox.get_focus()
         try:
-            due = focus.task.get_due() or Task.get_current_date()
-            due = Util.date_add_interval_str(due, text)
+            due = focus.task.get_due() or Util.get_today()
+            due = Util.mod_date_by(due, text)
             focus.task.set_due(due)
             self.tasklist.save()
             self.fill_listbox()
@@ -179,7 +179,7 @@ class MainUI:
 
     def add_new_task(self):
         task = self.tasklist.append_text("")
-        task.set_creation_date(Task.get_current_date())
+        task.set_creation_date(Util.get_today())
         t = taskui.TaskItem(task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
@@ -192,6 +192,8 @@ class MainUI:
 
     def task_changed(self):
         # finished editing
+        focus, _ = self.listbox.get_focus()
+        focus.task.update_relative_due_date()
         self.update_footer("")
         self.tasklist.save()
         self.fill_listbox()
@@ -208,7 +210,7 @@ class MainUI:
                 self.tasklist.append_text(t.raw)
                 t.update(last)
                 t.set_due(rec)
-                t.set_creation_date(Task.get_current_date())
+                t.set_creation_date(Util.get_today())
             else:
                 self.listbox.move_offs(1)
             self.tasklist.archive_done()  # saves

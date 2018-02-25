@@ -13,14 +13,13 @@ import os
 import sys
 
 
-from setuptools import setup, find_packages
-
 version = None
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tasklib', '__init__.py')) as fd:
     for line in fd:
         if line.startswith('version'):
             version = line.split()[-1].strip("\"")
 if not version: raise Exception("Missing version!")
+
 
 class PyTest(TestCommand):
 

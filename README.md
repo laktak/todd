@@ -15,6 +15,10 @@ Thanks to the creator and contributors of [todotxt-machine](https://github.com/A
 - Sort by due date or priority
 - Search/filter
 - Edit in plain text with tab completion or adjust priority and due
+- Due dates can be set with
+  - weekday name (mo, tu, ...)
+  - offset (`2d` in two days, `3m` in three moths, `1y` in a year)
+  - a fixed date (YYYY-MM-DD)
 
 ## Installation
 

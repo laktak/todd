@@ -34,7 +34,10 @@ class Task:
         r"(\d\d\d\d-\d\d-\d\d)\s*")
     _creation_date_regex2 = re.compile(
         _creation_date_prefix)
+
     _due_date_regex = re.compile(r"\s*due:(\d\d\d\d-\d\d-\d\d)\s*")
+    _any_due_date_regex = re.compile(r"\s*due:(\S+)\s*")
+
     _rec_int_regex = re.compile(r"\s*rec:(\+?\d+[dwmy])\s*")
     _rec_int_parts_regex = re.compile(r"(\+)?(\d+)([dwmy])")
 
@@ -87,14 +90,6 @@ class Task:
     def scan_done_date(text):
         match = Task._done_regex.match(text)
         return match.group(1) if match else ""
-
-    @staticmethod
-    def get_current_date(inc=0):
-        return datetime.date.today() + datetime.timedelta(days=inc)
-
-    @staticmethod
-    def get_current_date_str(inc=0):
-        return Task.get_current_date(inc).isoformat()
 
     def __repr__(self):
         return repr({
@@ -159,6 +154,14 @@ class Task:
 
     def get_due(self):
         return datetime.datetime.strptime(self.due_date, "%Y-%m-%d").date() if self.due_date else None
+
+    def update_relative_due_date(self):
+        match = Task._any_due_date_regex.search(self.raw)
+        if match:
+            date = Util.mod_date_by(Util.get_today(), match.group(1))
+            if date:
+                self.raw = re.sub(Task._any_due_date_regex, " ", self.raw).strip()
+                self.set_due(date)
 
     def set_creation_date(self, date):
         if type(date) is datetime.datetime: date = date.date()
