@@ -24,6 +24,7 @@ class Task:
     _context_regex = re.compile(r"(?:^|\s+)(@\S+)")
     _project_regex = re.compile(r"(?:^|\s+)(\+\S+)")
     _done_regex = re.compile(r"^x (\d\d\d\d-\d\d-\d\d) ")
+    _deleted_regex = re.compile(r"\s*del:(\S+)\s*")
 
     _creation_date_prefix = (
         r"^"
@@ -135,8 +136,20 @@ class Task:
         else:
             self.update(re.sub(Task._done_regex, "", self.raw))
 
+    def is_deleted(self):
+        match = Task._deleted_regex.search(self.raw)
+        return match.group(1) == "true" if match else False
+
+    def set_deleted(self, deleted=True):
+        if self.is_deleted() == deleted: return
+        match = Task._deleted_regex.search(self.raw)
+        v = " del:true " if deleted else " "
+        if match: text = re.sub(Task._deleted_regex, v, self.raw)
+        else: text = self.raw + v
+        self.update(text)
+
     def get_status(self, sdate):
-        if self.is_done(): return "done"
+        if self.is_done() or self.is_deleted(): return "done"
         if self.due_date:
             if self.due_date < sdate: return "overdue"
             elif self.due_date == sdate: return "due"

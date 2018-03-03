@@ -130,10 +130,9 @@ class MainUI:
         self.tasklist.save()
         self.update_header("Saved")
 
-    def archive_done(self):
-        self.tasklist.archive_done()
+    def archive_tasks(self):
+        self.tasklist.archive_tasks(Tasklist.filter_done_or_del)
         self.fill_listbox()
-        self.listbox.move_top()
 
     def archive_undo(self):
         t = self.tasklist.undo_archive()
@@ -203,6 +202,7 @@ class MainUI:
         if t.is_done():
             t.set_done(False)
             self.tasklist.save()
+            self.fill_listbox()
         else:
             last = t.raw
             rec = t.set_done()
@@ -213,16 +213,18 @@ class MainUI:
                 t.set_creation_date(Util.get_today())
             else:
                 self.listbox.move_offs(1)
-            self.tasklist.archive_done()  # saves
-
-        self.fill_listbox()
+            self.archive_tasks()  # save & update list
 
     def delete_task(self, focus):
-        if self.tasklist.get_items():
-            self.listbox.move_offs(1)
-            self.tasklist.delete_by_id(focus.task.task_id)
+        t = focus.task
+        if t.is_deleted():
+            t.set_deleted(False)
             self.tasklist.save()
             self.fill_listbox()
+        else:
+            self.listbox.move_offs(1)
+            t.set_deleted()
+            self.archive_tasks()  # save & update list
 
     def start_search(self):
         self.update_footer("search")
@@ -310,7 +312,7 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "add-due"): self.change_due(focus, True)
         elif self.key_bindings.is_bound_to(key, "subtract-due"): self.change_due(focus, False)
 
-        elif self.key_bindings.is_bound_to(key, "archive"): self.archive_done()
+        elif self.key_bindings.is_bound_to(key, "archive"): self.archive_tasks()
         elif self.key_bindings.is_bound_to(key, "undo-archive"): self.archive_undo()
         elif self.key_bindings.is_bound_to(key, "save"): self.save_tasklist()
         elif self.key_bindings.is_bound_to(key, "reload"): self.reload_tasklist_from_file()

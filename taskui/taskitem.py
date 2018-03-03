@@ -27,7 +27,7 @@ class TaskItem(urwid.Button):
             today = Util.get_today()
             status = t.get_status(today.isoformat())
             status_col = "status_" + status
-            if t.is_done(): text_col = status_col
+            if t.is_done() or t.is_deleted(): text_col = status_col
             elif t.priority and t.priority.lower() in "abcdef": text_col = "priority_" + t.priority.lower()
             else: text_col = "plain"
 

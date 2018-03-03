@@ -57,36 +57,35 @@ class Tasklist:
         self.observer.join()
         self.observer = None
 
-    def archive_done(self):
+    def archive_tasks(self, filter):
         with open(self.archive_path, "a", encoding="utf-8") as donetxt_file:
-            done = Tasklist.filter_done(self._items)
-            for t in done:
+            for t in filter(self._items):
                 donetxt_file.write(t.raw + "\n")
                 self._items.remove(t)
         self.save()
 
     def undo_archive(self):
-        with open(self.archive_path, "r+", encoding="utf-8") as file:
+        with open(self.archive_path, "r+b") as file:
 
             file.seek(0, os.SEEK_END)
             pos = file.tell()
 
-            text = ""
+            buf = b''
             while pos > 0:
                 pos -= 1
                 file.seek(pos, os.SEEK_SET)
                 c = file.read(1)
-                if c == "\n":
-                    if text.strip() != "":
+                if c == b'\n':
+                    if buf.strip() != b'':
                         pos += 1
                         break
                     else:
-                        text = ""
+                        buf = b''
                 else:
-                    text = c + text
+                    buf = c + buf
 
             res = None
-            text = text.strip()
+            text = buf.decode('utf-8').strip()
             if text != "":
                 res = self.append_text(text)
                 self.save()
@@ -160,11 +159,12 @@ class Tasklist:
             if not res: res = "9999"
             res += task.raw
             if not res: res = "z"
-            if task.is_done(): res = "z" + res
+            if task.is_done() or task.is_deleted(): res = "z" + res
             return res
 
         def prio(task):
-            return task.raw
+            if task.is_done() or task.is_deleted(): return "z" + res
+            else: return task.raw
 
         if sort_by == "due": return sorted(self._items, key=due_prio)
         elif sort_by == "prio": return sorted(self._items, key=prio)
@@ -178,8 +178,8 @@ class Tasklist:
         return [t for t in items if not t.is_done()] if items else []
 
     @staticmethod
-    def filter_done(items):
-        return [t for t in items if t.is_done()] if items else []
+    def filter_done_or_del(items):
+        return [t for t in items if t.is_done() or t.is_deleted()] if items else []
 
     @staticmethod
     def filter_context(items, context):
