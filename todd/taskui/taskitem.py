@@ -1,5 +1,5 @@
 import urwid
-from tasklib import Tasklist, Util
+from todd.tasklib import Tasklist, Util
 from urwid_viedit import ViEdit
 
 

@@ -22,8 +22,9 @@ if sys.version_info < (3, 6):
 import os
 from collections import OrderedDict
 from docopt import docopt
-import tasklib
-from taskui import MainUI, ColorScheme, KeyBindings
+import todd
+from todd.tasklib import Tasklist
+from todd.taskui import MainUI, ColorScheme, KeyBindings
 import configparser
 
 
@@ -68,7 +69,7 @@ def get_boolean_config_option(cfg, section, option, default=False):
 def main():
 
     # Parse command line
-    arguments = docopt(__doc__, version=tasklib.version)
+    arguments = docopt(__doc__, version=todd.version)
 
     # Parse config file
     cfg = configparser.ConfigParser(allow_no_value=True)
@@ -96,9 +97,9 @@ def main():
         todotxt_file = arguments["TODOFILE"]
 
     if todotxt_file is None:
-        exit_with_error(
+        exit_with_error((
             "ERROR: No todo file specified. Either specify one as an argument " +
-            " on the command line or set it in your configuration file ({0}).".format(arguments["--config"])
+            " on the command line or set it in your configuration file ({0}).").format(arguments["--config"])
         )
 
     # Load the done.txt file specified in the [settings] section of the config file
@@ -115,11 +116,11 @@ def main():
         donetxt_file_path = None
 
     try:
-        tasklist = tasklib.Tasklist.open_file(todotxt_file_path, donetxt_file_path)
+        tasklist = Tasklist.open_file(todotxt_file_path, donetxt_file_path)
     except Exception:
-        exit_with_error(
+        exit_with_error((
             "ERROR: unable to open {0}\n\nEither specify one as an argument on the " +
-            "command line or set it in your configuration file ({0}).".format(todotxt_file_path, arguments["--config"])
+            "command line or set it in your configuration file ({1}).").format(todotxt_file_path, arguments["--config"])
         )
 
     enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")

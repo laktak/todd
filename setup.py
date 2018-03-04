@@ -17,11 +17,8 @@ from setuptools.command.test import test as TestCommand
 import os
 
 
-version = None
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tasklib', '__init__.py')) as fd:
-    for line in fd:
-        if line.startswith('version'):
-            version = line.split()[-1].strip("\"")
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'todd', '__init__.py')) as fd:
+    version = [line.split()[-1].strip("\"") for line in fd if line.startswith('version')]
 if not version: raise Exception("Missing version!")
 
 
@@ -49,17 +46,17 @@ except IOError:
 
 setup(
     name=NAME,
-    version=version,
+    version=version[0],
     author="Christian Zangl",
     author_email="laktak@cdak.net",
     url="https://github.com/laktak/todd",
     description="An interactive terminal based todo.txt file editor",
     long_description=long_description,
     keywords="todotxt, todo.txt, todo, terminal, urwid, curses, console",
-    packages=find_packages(exclude=["tasklib/test*"]),
+    packages=find_packages(exclude=["todd/tasklib/test"]),
     include_package_data=True,
     entry_points={
-        "console_scripts": ["todd = taskui.cli:main"]
+        "console_scripts": ["todd = todd.main:main"]
     },
     classifiers=[
         "Development Status :: 4 - Beta",

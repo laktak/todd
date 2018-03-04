@@ -1,5 +1,5 @@
 import urwid
-from tasklib.util import Util
+from todd.tasklib.util import Util
 
 
 class EntryWidget(urwid.Edit):

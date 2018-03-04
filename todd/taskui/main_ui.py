@@ -1,8 +1,8 @@
 import os
 import urwid
 import collections
-from tasklib import Tasklist, Util
-import taskui
+from todd.tasklib import Tasklist, Util
+from todd import taskui
 
 
 class MainUI:

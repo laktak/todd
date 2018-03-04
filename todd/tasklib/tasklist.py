@@ -2,7 +2,7 @@ import os
 import re
 import watchdog.events
 import watchdog.observers
-from tasklib import Task
+from todd.tasklib import Task
 
 
 class Tasklist:
@@ -163,7 +163,7 @@ class Tasklist:
             return res
 
         def prio(task):
-            if task.is_done() or task.is_deleted(): return "z" + res
+            if task.is_done() or task.is_deleted(): return "z" + task.raw
             else: return task.raw
 
         if sort_by == "due": return sorted(self._items, key=due_prio)

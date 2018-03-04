@@ -1,7 +1,7 @@
 import urwid
 
 from textwrap import dedent
-from taskui import ViListBox
+from todd.taskui import ViListBox
 
 
 class MainHelp:

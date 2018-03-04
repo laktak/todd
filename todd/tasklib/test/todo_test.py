@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from tasklib import *
+from todd.tasklib import *
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4).pprint
