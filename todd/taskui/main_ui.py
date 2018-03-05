@@ -8,6 +8,7 @@ from todd import taskui
 class MainUI:
 
     def __init__(self, tasklist, key_bindings, colorscheme):
+        self.view_days = 7
         self.wrapping = collections.deque(["clip", "space"])
         self.sort_order = collections.deque(["Due", "Prio"])
 
@@ -42,6 +43,7 @@ class MainUI:
                     ("header_task_count", "{0} Tasks ".format(len(Tasklist.filter_pending(self.items)))),
                     ("header_task_due_count", " {0} due ".format(len(Tasklist.filter_due(self.items, today)))),
                     ("header_sort", " s:{0} ".format(self.sort_order[0])),
+                    ("header_view", " v:{0}days ".format(self.view_days) if self.view_days >= 0 else ""),
                 ]),
                 # urwid.Text(("header_file", "{0}  {1} ".format(message, self.tasklist.file_path)), align="right"),
                 urwid.Text(("header_file", message), align="right"),
@@ -88,11 +90,13 @@ class MainUI:
             self.view.contents.append((self.context_panel, self.view.options(width_type="weight", width_amount=1)))
             self.view.focus_position = 1
 
-    def toggle_wrapping(self, checkbox=None, state=None):
+    def toggle_view(self):
+        self.view_days = 7 if self.view_days <0 else -1
+        self.fill_listbox()
+
+    def toggle_wrapping(self):
         self.wrapping.rotate(1)
-        for item in self.listbox.body:
-            item.wrapping = self.wrapping[0]
-            item.update_task()
+        self.fill_listbox()
 
     def update_footer(self, name):
         if name == "edit-help":
@@ -266,6 +270,8 @@ class MainUI:
         sort_by = self.sort_order[0]
         items = self.tasklist.get_items_sorted(sort_by.lower())
 
+        items = Tasklist.filter_by_days(items, self.view_days)
+
         if self.active_context:
             items = Tasklist.filter_context(items, self.active_context)
 
@@ -297,6 +303,7 @@ class MainUI:
         # View options
         elif self.key_bindings.is_bound_to(key, "toggle-help"): self.toggle_help_panel()
         elif self.key_bindings.is_bound_to(key, "switch-context"): self.toggle_context_panel()
+        elif self.key_bindings.is_bound_to(key, "toggle-view"): self.toggle_view()
         elif self.key_bindings.is_bound_to(key, "toggle-wrapping"): self.toggle_wrapping()
         elif self.key_bindings.is_bound_to(key, "toggle-sort-order"): self.toggle_sort_order()
         elif self.key_bindings.is_bound_to(key, "search"): self.start_search()

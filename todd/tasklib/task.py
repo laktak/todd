@@ -155,6 +155,9 @@ class Task:
             elif self.due_date == sdate: return "due"
         return "todo"
 
+    def has_due(self):
+        return self.due_date is not None
+
     def is_due(self, sdate):
         return not self.is_done() and self.due_date and self.due_date <= sdate
 

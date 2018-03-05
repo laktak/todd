@@ -39,7 +39,7 @@ class Util:
         return datetime.date(y, m, d) if d < d_last.day else d_last
 
     @staticmethod
-    def _date_add_interval(date, t, value):
+    def date_add_interval(date, t, value):
         if t == "d" or t == "": return date + datetime.timedelta(days=value)
         elif t == "w": return date + datetime.timedelta(days=value * 7)
         elif t == "m": return Util._date_add_months(date, value)
@@ -77,7 +77,7 @@ class Util:
         (prefix, value, itype) = Util._interval_parts_regex.match(text).groups()
         value = int(value)
         mod = -1 if prefix == "-" else 1
-        return Util._date_add_interval(date, itype, value * mod)
+        return Util.date_add_interval(date, itype, value * mod)
 
     @staticmethod
     def define_keys(command_map, key_bindings, mappings):

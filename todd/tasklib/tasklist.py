@@ -2,7 +2,7 @@ import os
 import re
 import watchdog.events
 import watchdog.observers
-from todd.tasklib import Task
+from todd.tasklib import Task, Util
 
 
 class Tasklist:
@@ -172,6 +172,14 @@ class Tasklist:
     @staticmethod
     def filter_due(items, date):
         return [t for t in items if t.is_due(date)] if items else []
+
+    @staticmethod
+    def filter_by_days(items, days):
+        if days >= 0:
+            due = Util.get_today_str(days)
+            return [item for item in items if item.is_due(due) or not item.has_due()]
+        else:
+            return items
 
     @staticmethod
     def filter_pending(items):

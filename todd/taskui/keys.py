@@ -36,6 +36,7 @@ class KeyBindings:
         self.key_bindings["switch-context"] = ["c"]
         self.key_bindings["toggle-sort-order"] = ["s"]
         self.key_bindings["toggle-wrapping"] = ["w"]
+        self.key_bindings["toggle-view"] = ["v"]
         self.key_bindings["toggle-help"] = ["?"]
         self.key_bindings["search"] = ["/"]
         self.key_bindings["search-clear"] = ["C"]

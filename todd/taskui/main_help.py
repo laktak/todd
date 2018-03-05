@@ -17,21 +17,26 @@ class MainHelp:
 
             [urwid.AttrWrap(urwid.Text("General"), header_highlight)] +
             [urwid.Text(dedent("""\
-                {0} - show / hide this help message
-                {1} - quit and save
-                {2} - toggle word wrap
-                {3} - save current todo file
-                {4} - reload the todo file (discarding changes)
-                {5} - archive done tasks to done.txt
-                {6} - undo archive for the last task (repeat as required)
+                {0} - show / hide help
+                {1} - quit
+                {2} - reload the todo file
+                {3} - archive done tasks to done.txt
+                {4} - undo archive for the last task (repeat as required)
                 """).format(
                 key_bindings["toggle-help"].ljust(key_column_width),
                 key_bindings["quit"].ljust(key_column_width),
-                key_bindings["toggle-wrapping"].ljust(key_column_width),
-                key_bindings["save"].ljust(key_column_width),
                 key_bindings["reload"].ljust(key_column_width),
                 key_bindings["archive"].ljust(key_column_width),
                 key_bindings["undo-archive"].ljust(key_column_width),
+            ))] +
+
+            [urwid.AttrWrap(urwid.Text("View"), header_highlight)] +
+            [urwid.Text(dedent("""\
+                {0} - toggle view
+                {1} - toggle word wrap
+                """).format(
+                key_bindings["toggle-view"].ljust(key_column_width),
+                key_bindings["toggle-wrapping"].ljust(key_column_width),
             ))] +
 
             [urwid.AttrWrap(urwid.Text("Movement"), header_highlight)] +
