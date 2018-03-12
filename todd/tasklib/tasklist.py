@@ -87,7 +87,7 @@ class Tasklist:
             res = None
             text = buf.decode('utf-8').strip()
             if text != "":
-                res = self.append_text(text)
+                res = self.insert_new(-1, text)
                 self.save()
 
             file.seek(pos, os.SEEK_SET)
@@ -105,11 +105,9 @@ class Tasklist:
             if self._items[i].task_id == task_id:
                 return i
 
-    def append_text(self, text_item):
-        return self.insert_text(len(self._items), text_item)
-
-    def insert_text(self, index, text_item):
-        task = Task(text_item, self.get_next_id())
+    def insert_new(self, index, raw):
+        task = Task(raw, self.get_next_id())
+        if index == -1: index = len(self._items)
         self._items.insert(index, task)
         return task
 

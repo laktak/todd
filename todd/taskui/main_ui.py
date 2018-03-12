@@ -127,8 +127,9 @@ class MainUI:
         for i in range(len(self.listbox.body)):
             if self.listbox.body[i].task.task_id == task_id:
                 self.listbox.set_focus(i)
-                return
+                return False
         self.listbox.move_top()
+        return True
 
     def save_tasklist(self):
         self.tasklist.save()
@@ -181,8 +182,7 @@ class MainUI:
             self.update_header("Invalid format!")
 
     def add_new_task(self):
-        task = self.tasklist.append_text("")
-        task.set_creation_date(Util.get_today())
+        task = self.tasklist.insert_new(-1, "")
         t = taskui.TaskItem(task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
@@ -195,11 +195,19 @@ class MainUI:
 
     def task_changed(self):
         # finished editing
-        focus, _ = self.listbox.get_focus()
-        focus.task.update_relative_due_date()
-        self.update_footer("")
-        self.tasklist.save()
-        self.fill_listbox()
+        focus, idx = self.listbox.get_focus()
+        t = focus.task
+        if t.raw:
+            t.update_relative_due_date()
+            if not t.creation_date:
+                t.set_creation_date(Util.get_today())
+            self.update_footer("")
+            self.tasklist.save()
+        elif idx == 0:
+            # new empty task
+            self.tasklist.delete_by_id(t.task_id)
+            t = None
+        self.fill_listbox(t)
 
     def toggle_done(self, focus):
         t = focus.task
@@ -210,8 +218,9 @@ class MainUI:
         else:
             last = t.raw
             rec = t.set_done()
+            t2 = None
             if rec:
-                self.tasklist.append_text(t.raw)
+                self.tasklist.insert_new(-1, t.raw) # insert done
                 t.update(last)
                 t.set_due(rec)
                 t.set_creation_date(Util.get_today())
@@ -262,7 +271,7 @@ class MainUI:
             self.active_context = "@" + focus
             self.fill_listbox()
 
-    def fill_listbox(self):
+    def fill_listbox(self, keep=None):
         # clear
         focus, _ = self.listbox.get_focus()
         last_id = focus.task.task_id if focus else -1
@@ -280,6 +289,9 @@ class MainUI:
             search = Tasklist.prep_search(self.search_string)
             items = Tasklist.search(search, items)
             if not self.search_highlight: search = None
+
+        if keep and not any(item for item in items if item.task_id == keep.task_id):
+            items.append(keep)
 
         self.items = items
         self.listbox.body.clear()

@@ -198,7 +198,7 @@ def test_task_set_creation_date(tasklist, today):
     assert tasklist[4].creation_date == today.isoformat()
 
 def test_tasklist_append(tasklist, today):
-    tasklist.append_text("THIS IS A TEST @testing")
+    tasklist.insert_new(-1, "THIS IS A TEST @testing")
     assert [t.raw for t in tasklist] == [
         TODO_COWS,
         TODO_FLUX,
@@ -225,7 +225,7 @@ def test_tasklist_delete(tasklist):
     assert [task.task_id for task in tasklist.get_items()] == [2, 3, 4]
 
 def test_tasklist_insert(tasklist, today):
-    tasklist.insert_text(1, "THIS IS A TEST @testing")
+    tasklist.insert_new(1, "THIS IS A TEST @testing")
     assert [t.raw for t in tasklist] == [
         TODO_COWS,
         "THIS IS A TEST @testing",
