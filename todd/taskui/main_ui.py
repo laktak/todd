@@ -91,7 +91,7 @@ class MainUI:
             self.view.focus_position = 1
 
     def toggle_view(self):
-        self.view_days = 7 if self.view_days <0 else -1
+        self.view_days = 7 if self.view_days < 0 else -1
         self.fill_listbox()
 
     def toggle_wrapping(self):
