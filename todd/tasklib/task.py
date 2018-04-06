@@ -148,18 +148,20 @@ class Task:
         else: text = self.raw + v
         self.update(text)
 
-    def get_status(self, sdate):
-        if self.is_done() or self.is_deleted(): return "done"
+    def get_status(self, due_date, next_date=None):
+        if self.is_done() or self.is_deleted(): return ("done", 99999)
         if self.due_date:
-            if self.due_date < sdate: return "overdue"
-            elif self.due_date == sdate: return "due"
-        return "todo"
+            if self.due_date < due_date: return ("overdue", -1)
+            elif self.due_date == due_date: return ("due", 0)
+            elif self.due_date < next_date: return ("todo", 1)
+            else: return ("todo", 2)
+        return ("todo", 9999)
 
     def has_due(self):
         return self.due_date is not None
 
-    def is_due(self, sdate):
-        return not self.is_done() and self.due_date and self.due_date <= sdate
+    def is_due(self, due_date):
+        return not self.is_done() and self.due_date and self.due_date <= due_date
 
     def set_due(self, date):
         if type(date) is datetime.datetime: date = date.date()

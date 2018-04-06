@@ -3,7 +3,7 @@ from todd.tasklib import Tasklist, Util
 from urwid_viedit import ViEdit
 
 
-class TaskItem(urwid.Button):
+class TaskItem(urwid.WidgetWrap):
 
     def __init__(self, task, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
         super(TaskItem, self).__init__("")
@@ -13,6 +13,7 @@ class TaskItem(urwid.Button):
         self.colorscheme = colorscheme
         self.parent_ui = parent_ui
         self.editing = False
+        self.status = ""
         self.update_task(search)
 
     def selectable(self):
@@ -25,8 +26,8 @@ class TaskItem(urwid.Button):
         else:
             t = self.task
             today = Util.get_today()
-            status = t.get_status(today.isoformat())
-            status_col = "status_" + status
+            self.status = t.get_status(today.isoformat(), Util.get_next_monday().isoformat())
+            status_col = "status_" + self.status[0]
             if t.is_done() or t.is_deleted(): text_col = status_col
             elif t.priority and t.priority.lower() in "abcdef": text_col = "priority_" + t.priority.lower()
             else: text_col = "plain"

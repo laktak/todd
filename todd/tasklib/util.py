@@ -21,6 +21,11 @@ class Util:
         return _get_today() + datetime.timedelta(days=inc)
 
     @staticmethod
+    def get_next_monday(inc=0):
+        res = _get_today()
+        return res + datetime.timedelta(days=7 - res.weekday() + inc)
+
+    @staticmethod
     def get_today_str(inc=0):
         return Util.get_today(inc).isoformat()
 

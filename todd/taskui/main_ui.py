@@ -124,8 +124,8 @@ class MainUI:
             self.frame.footer = None
 
     def select_by_id(self, task_id):
-        for i in range(len(self.listbox.body)):
-            if self.listbox.body[i].task.task_id == task_id:
+        for i, item in enumerate(self.listbox.body):
+            if type(item) is taskui.TaskItem and item.task.task_id == task_id:
                 self.listbox.set_focus(i)
                 return False
         self.listbox.move_top()
@@ -218,9 +218,8 @@ class MainUI:
         else:
             last = t.raw
             rec = t.set_done()
-            t2 = None
             if rec:
-                self.tasklist.insert_new(-1, t.raw) # insert done
+                self.tasklist.insert_new(-1, t.raw)  # insert done
                 t.update(last)
                 t.set_due(rec)
                 t.set_creation_date(Util.get_today())
@@ -274,7 +273,7 @@ class MainUI:
     def fill_listbox(self, keep=None):
         # clear
         focus, _ = self.listbox.get_focus()
-        last_id = focus.task.task_id if focus else -1
+        last_id = focus.task.task_id if type(focus) is taskui.TaskItem else -1
 
         sort_by = self.sort_order[0]
         items = self.tasklist.get_items_sorted(sort_by.lower())
@@ -297,6 +296,19 @@ class MainUI:
         self.listbox.body.clear()
         self.listbox.body.extend(
             [taskui.TaskItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
+
+        ins = [
+            (-1, "# Overdue"),
+            (0, "# Due"),
+            (1, "# This Week"),
+            (2, "# Next Week"),
+        ]
+        for i, item in enumerate(self.listbox.body):
+            while len(ins) and ins[0][0] < item.status[1]:
+                ins.pop(0)
+            if len(ins) and ins[0][0] == item.status[1]:
+                self.listbox.body.insert(i, urwid.AttrMap(urwid.Text(("divider", ins[0][1]), align="left"), "divider"))
+                ins.pop(0)
 
         self.select_by_id(last_id)
         self.update_header()
