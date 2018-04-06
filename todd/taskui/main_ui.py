@@ -35,7 +35,7 @@ class MainUI:
         self.loop.screen.set_terminal_properties(colors=256)
         # also see self.loop.widget
 
-    def update_header(self, message=""):
+    def update_header(self, message="", color="header_message"):
         today = Util.get_today_str()
         self.frame.header = urwid.AttrMap(
             urwid.Columns([
@@ -45,8 +45,7 @@ class MainUI:
                     ("header_sort", " s:{0} ".format(self.sort_order[0])),
                     ("header_view", " v:{0}days ".format(self.view_days) if self.view_days >= 0 else ""),
                 ]),
-                # urwid.Text(("header_file", "{0}  {1} ".format(message, self.tasklist.file_path)), align="right"),
-                urwid.Text(("header_file", message), align="right"),
+                urwid.Text((color, message), align="right"),
             ]), "header")
 
     def toggle_help_panel(self):

@@ -56,8 +56,11 @@ class TaskItem(urwid.WidgetWrap):
 
     def edit_item(self):
         self.editing = True
-        self.edit_widget = ViEdit(caption="", edit_text=self.task.raw, completion_cb=self.completions)
+        self.edit_widget = ViEdit(caption="", edit_text=self.task.raw, completion_cb=self.completions, mode_cb=self.mode_switch)
         self._w = urwid.AttrMap(self.edit_widget, "plain_selected")
+
+    def mode_switch(self, normal_mode):
+        self.parent_ui.update_header(" VI-NORMAL " if normal_mode else " ** VI-INSERT ** ", "header_vi")
 
     def completions(self, text, completion_data={}):
         space = text.rfind(" ")
