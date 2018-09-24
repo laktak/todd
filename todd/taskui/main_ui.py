@@ -25,6 +25,8 @@ class MainUI:
         self.search_highlight = False
         self.search_string = ""
 
+        self.skip_task_list_updated = False
+
         self.listbox = taskui.ViListBox(self.key_bindings, urwid.SimpleListWalker([]))
         urwid.connect_signal(self.listbox.body, "modified", self.task_list_updated)
         self.frame = urwid.Frame(urwid.AttrMap(self.listbox, "plain"), header=None, footer=None)
@@ -154,7 +156,8 @@ class MainUI:
             self.reload_tasklist_from_file()
 
     def task_list_updated(self):
-        self.update_header()
+        if not self.skip_task_list_updated:
+            self.update_header()
 
     def adjust_priority(self, focus, mod):
         assert mod in [1, -1]
@@ -185,15 +188,17 @@ class MainUI:
         t = taskui.TaskItem(task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
-        self.edit_task()
+        self.skip_task_list_updated = True
+        self.edit_task(normal_mode=False)
 
-    def edit_task(self):
+    def edit_task(self, normal_mode=True):
         self.update_footer("edit-help")
         focus, _ = self.listbox.get_focus()
-        focus.edit_item()
+        focus.edit_item(normal_mode)
 
     def task_changed(self):
         # finished editing
+        self.skip_task_list_updated = False
         focus, idx = self.listbox.get_focus()
         t = focus.task
         if t.raw:
