@@ -20,13 +20,14 @@ class TaskItem(urwid.WidgetWrap):
         return True
 
     def update_task(self, search=None):
+        t = self.task
+        today = Util.get_today()
+        self.status = t.get_status(today.isoformat(), Util.get_next_monday().isoformat())
+
         if search:
-            show = Tasklist.get_search_highlight(search, self.task.raw)
+            show = Tasklist.get_search_highlight(search, t.raw)
             text = urwid.Text(show, wrap=self.wrapping)
         else:
-            t = self.task
-            today = Util.get_today()
-            self.status = t.get_status(today.isoformat(), Util.get_next_monday().isoformat())
             status_col = "status_" + self.status[0]
             if t.is_done() or t.is_deleted(): text_col = status_col
             elif t.priority and t.priority.lower() in "abcdef": text_col = "priority_" + t.priority.lower()

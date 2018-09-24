@@ -59,6 +59,12 @@ class ViListBox(urwid.ListBox):
     def listbox_count(self):
         return len(self.body)
 
+    def _keypress_max_left(self):
+        return self.move_top()
+
+    def _keypress_max_right(self):
+        return self.move_bottom()
+
     def move_top(self):
         for i, item in enumerate(self.body):
             if item.selectable():
@@ -73,10 +79,19 @@ class ViListBox(urwid.ListBox):
 
     def move_offs(self, offs):
         w, pos = self.get_focus()
-        try:
-            self.set_focus(pos + offs)
-        except Exception:
-            pass
+        d = -1 if offs < 0 else 1
+        offs = abs(offs)
+        item = None
+        while offs > 0:
+            pos += d
+            if pos < 0 or pos >= len(self.body):
+                item = None
+                break
+            item = self.body[pos]
+            if not item: break
+            if item.selectable(): offs -= 1
+        if item:
+            self.set_focus(pos)
 
     def keypress(self, size, key):
         key = super(ViListBox, self).keypress(size, key)

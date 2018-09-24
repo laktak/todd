@@ -296,11 +296,12 @@ class MainUI:
         self.listbox.body.extend(
             [taskui.TaskItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
 
+        # insert dividers
         ins = [
             (-1, "# Overdue"),
             (0, "# Due"),
             (1, "# This Week"),
-            (2, "# Next Week"),
+            (2, "# Next"),
         ]
         for i, item in enumerate(self.listbox.body):
             while len(ins) and ins[0][0] < item.status[1]:
