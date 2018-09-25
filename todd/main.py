@@ -1,4 +1,3 @@
-
 """todd
 
 Usage:
@@ -17,7 +16,7 @@ Options:
 import sys
 
 if sys.version_info < (3, 6):
-    sys.exit('Python < 3.6 is not supported')
+    sys.exit("Python < 3.6 is not supported")
 
 import os
 from collections import OrderedDict
@@ -48,7 +47,9 @@ def get_real_path(filename, description):
             open(file_path, "a").close()
         else:
             exit_with_error(
-                ("ERROR: The directory: '{0}' for '{1}' does not exist\n").format(directory, file_path)
+                ("ERROR: The directory: '{0}' for '{1}' does not exist\n").format(
+                    directory, file_path
+                )
             )
 
     return file_path
@@ -56,9 +57,7 @@ def get_real_path(filename, description):
 
 def get_boolean_config_option(cfg, section, option, default=False):
     value = dict(cfg.items(section)).get(option, default)
-    if (type(value) != bool and
-        (str(value).lower() == "true" or
-         str(value).lower() == "1")):
+    if type(value) != bool and (str(value).lower() == "true" or str(value).lower() == "1"):
         value = True
     else:
         # If present but is not True or 1
@@ -97,9 +96,11 @@ def main():
         todotxt_file = arguments["TODOFILE"]
 
     if todotxt_file is None:
-        exit_with_error((
-            "ERROR: No todo file specified. Either specify one as an argument " +
-            " on the command line or set it in your configuration file ({0}).").format(arguments["--config"])
+        exit_with_error(
+            (
+                "ERROR: No todo file specified. Either specify one as an argument "
+                + " on the command line or set it in your configuration file ({0})."
+            ).format(arguments["--config"])
         )
 
     # Load the done.txt file specified in the [settings] section of the config file
@@ -118,9 +119,11 @@ def main():
     try:
         tasklist = Tasklist.open_file(todotxt_file_path, donetxt_file_path)
     except Exception:
-        exit_with_error((
-            "ERROR: unable to open {0}\n\nEither specify one as an argument on the " +
-            "command line or set it in your configuration file ({1}).").format(todotxt_file_path, arguments["--config"])
+        exit_with_error(
+            (
+                "ERROR: unable to open {0}\n\nEither specify one as an argument on the "
+                + "command line or set it in your configuration file ({1})."
+            ).format(todotxt_file_path, arguments["--config"])
         )
 
     enable_word_wrap = get_boolean_config_option(cfg, "settings", "enable-word-wrap")

@@ -13,7 +13,7 @@ class KeyBindings:
             try:
                 self.key_bindings[bind] = key
             except KeyError:
-                print("KeyBind \"" + bind + "\" not found")
+                print('KeyBind "' + bind + '" not found')
 
     def fillWithDefault(self):
         self.key_bindings["home"] = ["g"]

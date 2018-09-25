@@ -26,15 +26,9 @@ class Task:
     _done_regex = re.compile(r"^x (\d\d\d\d-\d\d-\d\d) ")
     _deleted_regex = re.compile(r"\s*del:(\S+)\s*")
 
-    _creation_date_prefix = (
-        r"^"
-        r"(x \d\d\d\d-\d\d-\d\d\s+)?"
-        r"(\(\w\)\s+)?")
-    _creation_date_regex = re.compile(
-        _creation_date_prefix +
-        r"(\d\d\d\d-\d\d-\d\d)\s*")
-    _creation_date_regex2 = re.compile(
-        _creation_date_prefix)
+    _creation_date_prefix = r"^" r"(x \d\d\d\d-\d\d-\d\d\s+)?" r"(\(\w\)\s+)?"
+    _creation_date_regex = re.compile(_creation_date_prefix + r"(\d\d\d\d-\d\d-\d\d)\s*")
+    _creation_date_regex2 = re.compile(_creation_date_prefix)
 
     _due_date_regex = re.compile(r"\s*due:(\d\d\d\d-\d\d-\d\d)\s*")
     _any_due_date_regex = re.compile(r"\s*due:(\S+)\s*")
@@ -93,20 +87,23 @@ class Task:
         return match.group(1) if match else ""
 
     def __repr__(self):
-        return repr({
-            "raw": self.raw,
-            "task_id": self.task_id,
-            "priority": self.priority,
-            "done_date": self.done_date,
-            "creation_date": self.creation_date,
-            "contexts": self.contexts,
-            "projects": self.projects,
-            "due_date": self.due_date,
-            "rec_int": self.rec_int,
-        })
+        return repr(
+            {
+                "raw": self.raw,
+                "task_id": self.task_id,
+                "priority": self.priority,
+                "done_date": self.done_date,
+                "creation_date": self.creation_date,
+                "contexts": self.contexts,
+                "projects": self.projects,
+                "due_date": self.due_date,
+                "rec_int": self.rec_int,
+            }
+        )
 
     def set_priority(self, new_priority):
-        if self.priority == new_priority: return
+        if self.priority == new_priority:
+            return
         if new_priority:
             new_priority = "({}) ".format(new_priority)
 
@@ -123,7 +120,8 @@ class Task:
         return self.raw[0:2] == "x "
 
     def set_done(self, done=True):
-        if self.is_done() == done: return
+        if self.is_done() == done:
+            return
         if done:
             self.set_priority("")
             today = datetime.date.today()
@@ -141,20 +139,28 @@ class Task:
         return match.group(1) == "true" if match else False
 
     def set_deleted(self, deleted=True):
-        if self.is_deleted() == deleted: return
+        if self.is_deleted() == deleted:
+            return
         match = Task._deleted_regex.search(self.raw)
         v = " del:true " if deleted else " "
-        if match: text = re.sub(Task._deleted_regex, v, self.raw)
-        else: text = self.raw + v
+        if match:
+            text = re.sub(Task._deleted_regex, v, self.raw)
+        else:
+            text = self.raw + v
         self.update(text)
 
     def get_status(self, due_date, next_date=None):
-        if self.is_done() or self.is_deleted(): return ("done", 99999)
+        if self.is_done() or self.is_deleted():
+            return ("done", 99999)
         if self.due_date:
-            if self.due_date < due_date: return ("overdue", -1)
-            elif self.due_date == due_date: return ("due", 0)
-            elif self.due_date < next_date: return ("todo", 1)
-            else: return ("todo", 2)
+            if self.due_date < due_date:
+                return ("overdue", -1)
+            elif self.due_date == due_date:
+                return ("due", 0)
+            elif self.due_date < next_date:
+                return ("todo", 1)
+            else:
+                return ("todo", 2)
         return ("todo", 9999)
 
     def has_due(self):
@@ -164,14 +170,19 @@ class Task:
         return not self.is_done() and self.due_date and self.due_date <= due_date
 
     def set_due(self, date):
-        if type(date) is datetime.datetime: date = date.date()
+        if type(date) is datetime.datetime:
+            date = date.date()
         text = " due:" + date.isoformat()
-        if self.due_date: self.raw = re.sub(Task._due_date_regex, text + " ", self.raw)
-        else: self.raw += text
+        if self.due_date:
+            self.raw = re.sub(Task._due_date_regex, text + " ", self.raw)
+        else:
+            self.raw += text
         self.update(self.raw)
 
     def get_due(self):
-        return datetime.datetime.strptime(self.due_date, "%Y-%m-%d").date() if self.due_date else None
+        return (
+            datetime.datetime.strptime(self.due_date, "%Y-%m-%d").date() if self.due_date else None
+        )
 
     def update_relative_due_date(self):
         if not Task.scan_due_date(self.raw):
@@ -183,15 +194,18 @@ class Task:
                     self.set_due(date)
 
     def set_creation_date(self, date):
-        if type(date) is datetime.datetime: date = date.date()
-        regex = Task._creation_date_regex if self.creation_date != "" else Task._creation_date_regex2
+        if type(date) is datetime.datetime:
+            date = date.date()
+        regex = (
+            Task._creation_date_regex if self.creation_date != "" else Task._creation_date_regex2
+        )
         self.raw = re.sub(regex, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
         self.update(self.raw)
 
     def get_desc(self):
         PLHR = u" \N{HORIZONTAL ELLIPSIS} "
         res = self.raw
-        if self.creation_date != '':
+        if self.creation_date != "":
             res = re.sub(Task._creation_date_regex, r"\1\2", res)
         res = re.sub(Task._due_date_regex, PLHR, res)
         res = re.sub(Task._rec_int_regex, PLHR, res)

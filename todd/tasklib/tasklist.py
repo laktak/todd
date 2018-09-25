@@ -6,7 +6,6 @@ from todd.tasklib import Task, Util
 
 
 class Tasklist:
-
     def __init__(self, text_items):
         self.next_id = 1
         self.set_text_items(text_items or [])
@@ -15,8 +14,10 @@ class Tasklist:
     def open_file(file_path, archive_path=None):
         tasklist = Tasklist(None)
         tasklist.file_path = file_path
-        if archive_path: tasklist.archive_path = archive_path
-        else: tasklist.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
+        if archive_path:
+            tasklist.archive_path = archive_path
+        else:
+            tasklist.archive_path = os.path.join(os.path.dirname(file_path), "done.txt")
         tasklist.reload()
         return tasklist
 
@@ -44,8 +45,9 @@ class Tasklist:
 
         class Watcher(watchdog.events.FileSystemEventHandler):
             def on_modified(self, event):
-                if (not event.is_directory and
-                        os.path.realpath(event.src_path) == os.path.realpath(path)):
+                if not event.is_directory and os.path.realpath(event.src_path) == os.path.realpath(
+                    path
+                ):
                     handler()
 
         self.observer = watchdog.observers.Observer()
@@ -70,22 +72,22 @@ class Tasklist:
             file.seek(0, os.SEEK_END)
             pos = file.tell()
 
-            buf = b''
+            buf = b""
             while pos > 0:
                 pos -= 1
                 file.seek(pos, os.SEEK_SET)
                 c = file.read(1)
-                if c == b'\n':
-                    if buf.strip() != b'':
+                if c == b"\n":
+                    if buf.strip() != b"":
                         pos += 1
                         break
                     else:
-                        buf = b''
+                        buf = b""
                 else:
                     buf = c + buf
 
             res = None
-            text = buf.decode('utf-8').strip()
+            text = buf.decode("utf-8").strip()
             if text != "":
                 res = self.insert_new(-1, text)
                 self.save()
@@ -95,10 +97,7 @@ class Tasklist:
             return res
 
     def set_text_items(self, text_items):
-        self._items = [
-            Task(task, self.get_next_id())
-            for task in text_items if task.strip() != ""
-        ]
+        self._items = [Task(task, self.get_next_id()) for task in text_items if task.strip() != ""]
 
     def get_index(self, task_id):
         for i in range(len(self._items)):
@@ -107,7 +106,8 @@ class Tasklist:
 
     def insert_new(self, index, raw):
         task = Task(raw, self.get_next_id())
-        if index == -1: index = len(self._items)
+        if index == -1:
+            index = len(self._items)
         self._items.insert(index, task)
         return task
 
@@ -151,21 +151,27 @@ class Tasklist:
         return self._items
 
     def get_items_sorted(self, sort_by):
-
         def due_prio(task):
             res = task.due_date
-            if not res: res = "9999"
+            if not res:
+                res = "9999"
             res += task.raw
-            if not res: res = "z"
-            if task.is_done() or task.is_deleted(): res = "z" + res
+            if not res:
+                res = "z"
+            if task.is_done() or task.is_deleted():
+                res = "z" + res
             return res
 
         def prio(task):
-            if task.is_done() or task.is_deleted(): return "z" + task.raw
-            else: return task.raw
+            if task.is_done() or task.is_deleted():
+                return "z" + task.raw
+            else:
+                return task.raw
 
-        if sort_by == "due": return sorted(self._items, key=due_prio)
-        elif sort_by == "prio": return sorted(self._items, key=prio)
+        if sort_by == "due":
+            return sorted(self._items, key=due_prio)
+        elif sort_by == "prio":
+            return sorted(self._items, key=prio)
 
     @staticmethod
     def filter_due(items, date):
@@ -194,14 +200,16 @@ class Tasklist:
     @staticmethod
     def prep_search(search_string):
         search_list = [x for x in [x.strip() for x in search_string.split(" ")] if x != ""]
-        if not search_list: return None
+        if not search_list:
+            return None
         exp1 = "".join(["(?=.*(" + re.escape(item) + "))" for item in search_list])
         exp2 = "(" + "|".join([re.escape(item) for item in search_list]) + ")"
         return (re.compile(exp1, re.IGNORECASE), re.compile(exp2, re.IGNORECASE))
 
     @staticmethod
     def search(search, items):
-        if not search: return items
+        if not search:
+            return items
         return [item for item in items if search[0].search(item.raw)]
 
     @staticmethod
@@ -210,7 +218,8 @@ class Tasklist:
             color_list = search[1].split(text)
             matches = search[0].search(text).groups()
             for index, w in enumerate(color_list):
-                if w in matches: color_list[index] = ("search_match", w)
+                if w in matches:
+                    color_list[index] = ("search_match", w)
             return color_list
         except Exception:
             return text

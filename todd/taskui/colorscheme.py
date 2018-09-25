@@ -3,9 +3,10 @@ import configparser
 
 
 class ColorScheme:
-
     def __init__(self, name, user_config):
-        self.built_in_colors_directory = os.path.realpath(os.path.expanduser(os.path.dirname(__file__) + "/colors"))
+        self.built_in_colors_directory = os.path.realpath(
+            os.path.expanduser(os.path.dirname(__file__) + "/colors")
+        )
         self.user_config = user_config
         self.load_colors(name)
 
@@ -42,7 +43,13 @@ class ColorScheme:
         dialog_color = self.colors["dialog_color"]["bg"]
         for key, value in list(self.colors.items()):
             if key not in ["selected", "dialog_color", "dialog_button_color"]:
-                self.colors[key + "_selected"] = {"fg": self.colors[key]["fg"], "bg": selected_background_color}
-                self.colors[key + "_dialog_color"] = {"fg": self.colors[key]["fg"], "bg": dialog_color}
+                self.colors[key + "_selected"] = {
+                    "fg": self.colors[key]["fg"],
+                    "bg": selected_background_color,
+                }
+                self.colors[key + "_dialog_color"] = {
+                    "fg": self.colors[key]["fg"],
+                    "bg": dialog_color,
+                }
                 self.focus_map[key] = key + "_selected"
                 self.dialog_focus_map[key] = key + "_dialog_color"

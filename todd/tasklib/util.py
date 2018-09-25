@@ -1,4 +1,3 @@
-
 import re
 import datetime
 
@@ -14,7 +13,7 @@ class Util:
     delta1 = datetime.timedelta(days=1)
     delta7 = datetime.timedelta(days=7)
     delta30 = datetime.timedelta(days=30)
-    WDAY = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+    WDAY = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
     @staticmethod
     def get_today(inc=0):
@@ -45,16 +44,22 @@ class Util:
 
     @staticmethod
     def date_add_interval(date, t, value):
-        if t == "d" or t == "": return date + datetime.timedelta(days=value)
-        elif t == "w": return date + datetime.timedelta(days=value * 7)
-        elif t == "m": return Util._date_add_months(date, value)
-        elif t == "y": return Util._date_add_months(date, value * 12)
-        else: return date
+        if t == "d" or t == "":
+            return date + datetime.timedelta(days=value)
+        elif t == "w":
+            return date + datetime.timedelta(days=value * 7)
+        elif t == "m":
+            return Util._date_add_months(date, value)
+        elif t == "y":
+            return Util._date_add_months(date, value * 12)
+        else:
+            return date
 
     @staticmethod
     def _get_next_weekday(day, *, today=_get_today()):
         delta = day - today.weekday()
-        if delta <= 0: delta += 7
+        if delta <= 0:
+            delta += 7
         return today + datetime.timedelta(days=delta)
 
     @staticmethod
@@ -64,9 +69,12 @@ class Util:
         for idx, day in enumerate(Util.WDAY):
             if text2 == day[:2]:
                 return Util._get_next_weekday(idx, today=today)
-        if text[:3] == 'tod': return Util.get_today()  # today
-        elif text == 'to': return Util.get_today(1)  # tomorrow
-        elif text2 == 'ye': return Util.get_today(-1)  # yesterday
+        if text[:3] == "tod":
+            return Util.get_today()  # today
+        elif text == "to":
+            return Util.get_today(1)  # tomorrow
+        elif text2 == "ye":
+            return Util.get_today(-1)  # yesterday
         try:
             delta = int(text)
             return today + datetime.timedelta(days=delta)
@@ -77,7 +85,8 @@ class Util:
     def mod_date_by(date, text, *, today=_get_today()):
         # try relative date
         date2 = Util._parse_relative_date(text, today=today)
-        if date2: return date2
+        if date2:
+            return date2
         # try interval
         (prefix, value, itype) = Util._interval_parts_regex.match(text).groups()
         value = int(value)
@@ -94,15 +103,24 @@ class Util:
 
     @staticmethod
     def get_date_name(date, *, today=_get_today()):
-        if date is None: return "later"
+        if date is None:
+            return "later"
         v = date - today
         if v < Util.delta0:
-            if v == -Util.delta1: return "yesterday"
-            elif v >= -Util.delta7: return "last " + Util.WDAY[date.weekday()][:3]
-            elif v >= -Util.delta30: return "{0} days ago".format(-v.days)
+            if v == -Util.delta1:
+                return "yesterday"
+            elif v >= -Util.delta7:
+                return "last " + Util.WDAY[date.weekday()][:3]
+            elif v >= -Util.delta30:
+                return "{0} days ago".format(-v.days)
             return date.isoformat()
-        elif v == Util.delta0: return "today"
-        elif v == Util.delta1: return "tomorrow"
-        elif v <= Util.delta7: return Util.WDAY[date.weekday()]
-        elif v <= Util.delta30: return "in {0} days".format(v.days)
-        else: return date.isoformat()
+        elif v == Util.delta0:
+            return "today"
+        elif v == Util.delta1:
+            return "tomorrow"
+        elif v <= Util.delta7:
+            return Util.WDAY[date.weekday()]
+        elif v <= Util.delta30:
+            return "in {0} days".format(v.days)
+        else:
+            return date.isoformat()

@@ -6,7 +6,6 @@ from todd import taskui
 
 
 class MainUI:
-
     def __init__(self, tasklist, key_bindings, colorscheme):
         self.view_days = 7
         self.wrapping = collections.deque(["clip", "space"])
@@ -17,7 +16,10 @@ class MainUI:
         self.key_bindings = key_bindings
 
         self.colorscheme = colorscheme
-        self.palette = [(key, "", "", "", value["fg"], value["bg"]) for key, value in self.colorscheme.colors.items()]
+        self.palette = [
+            (key, "", "", "", value["fg"], value["bg"])
+            for key, value in self.colorscheme.colors.items()
+        ]
 
         self.context_panel = None
         self.active_context = None
@@ -33,31 +35,51 @@ class MainUI:
         self.view = taskui.ViColumns(self.key_bindings, [("weight", 5, self.frame)])
         self.help_panel = None
 
-        self.loop = urwid.MainLoop(self.view, self.palette, unhandled_input=self.keystroke, handle_mouse=False)
+        self.loop = urwid.MainLoop(
+            self.view, self.palette, unhandled_input=self.keystroke, handle_mouse=False
+        )
         self.loop.screen.set_terminal_properties(colors=256)
         # also see self.loop.widget
 
     def update_header(self, message="", color="header_message"):
         today = Util.get_today_str()
         self.frame.header = urwid.AttrMap(
-            urwid.Columns([
-                urwid.Text([
-                    ("header_task_count", "{0} Tasks ".format(len(Tasklist.filter_pending(self.items)))),
-                    ("header_task_due_count", " {0} due ".format(len(Tasklist.filter_due(self.items, today)))),
-                    ("header_sort", " s:{0} ".format(self.sort_order[0])),
-                    ("header_view", " v:{0}days ".format(self.view_days) if self.view_days >= 0 else ""),
-                ]),
-                urwid.Text((color, message), align="right"),
-            ]), "header")
+            urwid.Columns(
+                [
+                    urwid.Text(
+                        [
+                            (
+                                "header_task_count",
+                                "{0} Tasks ".format(len(Tasklist.filter_pending(self.items))),
+                            ),
+                            (
+                                "header_task_due_count",
+                                " {0} due ".format(len(Tasklist.filter_due(self.items, today))),
+                            ),
+                            ("header_sort", " s:{0} ".format(self.sort_order[0])),
+                            (
+                                "header_view",
+                                " v:{0}days ".format(self.view_days) if self.view_days >= 0 else "",
+                            ),
+                        ]
+                    ),
+                    urwid.Text((color, message), align="right"),
+                ]
+            ),
+            "header",
+        )
 
     def toggle_help_panel(self):
-        if self.context_panel: self.toggle_context_panel()
+        if self.context_panel:
+            self.toggle_context_panel()
         if self.help_panel:
             self.help_panel = None
             self.loop.widget = self.view
         else:
             self.help_panel = taskui.MainHelp.create_help_panel(self.key_bindings)
-            self.loop.widget = urwid.Overlay(self.help_panel, self.view, "center", 70, "middle", ("relative", 90))
+            self.loop.widget = urwid.Overlay(
+                self.help_panel, self.view, "center", 70, "middle", ("relative", 90)
+            )
 
     def toggle_sort_order(self):
         self.sort_order.rotate(1)
@@ -68,27 +90,47 @@ class MainUI:
         def create_context_panel():
             allc = self.tasklist.all_contexts()
 
-            self.context_list = taskui.ViListBox(self.key_bindings, urwid.SimpleListWalker(
-                [urwid.Divider()] +
-                [urwid.Text("Switch Context")] +
-                [urwid.Divider(u"─")] +
-                [urwid.AttrMap(taskui.MenuItem("(all)", self.toggle_context_panel), "dialog_color", "plain_selected")] +
-                [urwid.AttrMap(taskui.MenuItem([c[1:]], self.toggle_context_panel), "dialog_color", "plain_selected") for c in allc]
-            ))
+            self.context_list = taskui.ViListBox(
+                self.key_bindings,
+                urwid.SimpleListWalker(
+                    [urwid.Divider()]
+                    + [urwid.Text("Switch Context")]
+                    + [urwid.Divider(u"─")]
+                    + [
+                        urwid.AttrMap(
+                            taskui.MenuItem("(all)", self.toggle_context_panel),
+                            "dialog_color",
+                            "plain_selected",
+                        )
+                    ]
+                    + [
+                        urwid.AttrMap(
+                            taskui.MenuItem([c[1:]], self.toggle_context_panel),
+                            "dialog_color",
+                            "plain_selected",
+                        )
+                        for c in allc
+                    ]
+                ),
+            )
 
             if self.active_context:
                 for idx, c in enumerate(allc):
                     if c == self.active_context:
                         self.context_list.body.set_focus(idx + 4)
             urwid.connect_signal(self.context_list.body, "modified", self.context_list_updated)
-            return urwid.AttrMap(urwid.Padding(self.context_list, left=1, right=1, min_width=10), "dialog_color")
+            return urwid.AttrMap(
+                urwid.Padding(self.context_list, left=1, right=1, min_width=10), "dialog_color"
+            )
 
         if self.context_panel:
             self.view.contents.pop()
             self.context_panel = None
         else:
             self.context_panel = create_context_panel()
-            self.view.contents.append((self.context_panel, self.view.options(width_type="weight", width_amount=1)))
+            self.view.contents.append(
+                (self.context_panel, self.view.options(width_type="weight", width_amount=1))
+            )
             self.view.focus_position = 1
 
     def toggle_view(self):
@@ -101,25 +143,41 @@ class MainUI:
 
     def update_footer(self, name):
         if name == "edit-help":
-            self.frame.footer = urwid.AttrMap(urwid.Pile([
-                urwid.Text("Task format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE (like +shop @home due:mon or due:2020-10-01)"),
-            ]), "footer")
+            self.frame.footer = urwid.AttrMap(
+                urwid.Pile(
+                    [
+                        urwid.Text(
+                            "Task format: DESCRIPTION +TAG(s) @CONTEXT KEY:VALUE"
+                            + " (like +shop @home due:mon or due:2020-10-01)"
+                        )
+                    ]
+                ),
+                "footer",
+            )
         elif name == "search":
             search_box = taskui.EntryWidget(self.search_string, self.commit_search)
-            self.frame.footer = urwid.AttrMap(urwid.Columns([
-                (1, urwid.Text("/")),
-                search_box,
-            ]), "footer")
+            self.frame.footer = urwid.AttrMap(
+                urwid.Columns([(1, urwid.Text("/")), search_box]), "footer"
+            )
             urwid.connect_signal(search_box, "change", self.search_updated)
             self.frame.set_focus("footer")
         elif name == "due" or name == "due-":
             edit_box = taskui.EntryWidget("" if name == "due" else "-", self.commit_due)
-            self.frame.footer = urwid.AttrMap(urwid.Pile([
-                urwid.Columns([(17, urwid.Text("adjust due date:")), edit_box]),
-                urwid.Text((
-                    "plain",
-                    "Add/subtract days, months and years like 7d, -2m or 5y. Also accepts mo, tu, .. su or to(morrow).")),
-            ]), "footer")
+            self.frame.footer = urwid.AttrMap(
+                urwid.Pile(
+                    [
+                        urwid.Columns([(17, urwid.Text("adjust due date:")), edit_box]),
+                        urwid.Text(
+                            (
+                                "plain",
+                                "Add/subtract days, months and years like 7d, -2m or 5y."
+                                + " Also accepts mo, tu, .. su or to(morrow).",
+                            )
+                        ),
+                    ]
+                ),
+                "footer",
+            )
             self.frame.set_focus("footer")
         else:
             self.frame.footer = None
@@ -185,7 +243,9 @@ class MainUI:
 
     def add_new_task(self):
         task = self.tasklist.insert_new(-1, "")
-        t = taskui.TaskItem(task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0])
+        t = taskui.TaskItem(
+            task, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0]
+        )
         self.listbox.body.insert(0, t)
         self.listbox.move_top()
         self.skip_task_list_updated = True
@@ -291,7 +351,8 @@ class MainUI:
         if self.search_string != "":
             search = Tasklist.prep_search(self.search_string)
             items = Tasklist.search(search, items)
-            if not self.search_highlight: search = None
+            if not self.search_highlight:
+                search = None
 
         if keep and not any(item for item in items if item.task_id == keep.task_id):
             items.append(keep)
@@ -299,20 +360,28 @@ class MainUI:
         self.items = items
         self.listbox.body.clear()
         self.listbox.body.extend(
-            [taskui.TaskItem(t, self.key_bindings, self.colorscheme, self, wrapping=self.wrapping[0], search=search) for t in items])
+            [
+                taskui.TaskItem(
+                    t,
+                    self.key_bindings,
+                    self.colorscheme,
+                    self,
+                    wrapping=self.wrapping[0],
+                    search=search,
+                )
+                for t in items
+            ]
+        )
 
         # insert dividers
-        ins = [
-            (-1, "# Overdue"),
-            (0, "# Due"),
-            (1, "# This Week"),
-            (2, "# Next"),
-        ]
+        ins = [(-1, "# Overdue"), (0, "# Due"), (1, "# This Week"), (2, "# Next")]
         for i, item in enumerate(self.listbox.body):
             while len(ins) and ins[0][0] < item.status[1]:
                 ins.pop(0)
             if len(ins) and ins[0][0] == item.status[1]:
-                self.listbox.body.insert(i, urwid.AttrMap(urwid.Text(("divider", ins[0][1]), align="left"), "divider"))
+                self.listbox.body.insert(
+                    i, urwid.AttrMap(urwid.Text(("divider", ins[0][1]), align="left"), "divider")
+                )
                 ins.pop(0)
 
         self.select_by_id(last_id)
@@ -321,37 +390,59 @@ class MainUI:
     def keystroke(self, key):
 
         if self.help_panel:
-            if self.key_bindings.is_bound_to(key, "quit") or \
-                self.key_bindings.is_bound_to(key, "toggle-help"): self.toggle_help_panel()
+            if self.key_bindings.is_bound_to(key, "quit") or self.key_bindings.is_bound_to(
+                key, "toggle-help"
+            ):
+                self.toggle_help_panel()
             return
 
         focus, _ = self.listbox.get_focus()
 
-        if self.key_bindings.is_bound_to(key, "quit"): raise urwid.ExitMainLoop()
+        if self.key_bindings.is_bound_to(key, "quit"):
+            raise urwid.ExitMainLoop()
 
-        # View options
-        elif self.key_bindings.is_bound_to(key, "toggle-help"): self.toggle_help_panel()
-        elif self.key_bindings.is_bound_to(key, "switch-context"): self.toggle_context_panel()
-        elif self.key_bindings.is_bound_to(key, "toggle-view"): self.toggle_view()
-        elif self.key_bindings.is_bound_to(key, "toggle-wrapping"): self.toggle_wrapping()
-        elif self.key_bindings.is_bound_to(key, "toggle-sort-order"): self.toggle_sort_order()
-        elif self.key_bindings.is_bound_to(key, "search"): self.start_search()
-        elif self.key_bindings.is_bound_to(key, "search-clear"): self.clear_search_term()
+            # View options
+        elif self.key_bindings.is_bound_to(key, "toggle-help"):
+            self.toggle_help_panel()
+        elif self.key_bindings.is_bound_to(key, "switch-context"):
+            self.toggle_context_panel()
+        elif self.key_bindings.is_bound_to(key, "toggle-view"):
+            self.toggle_view()
+        elif self.key_bindings.is_bound_to(key, "toggle-wrapping"):
+            self.toggle_wrapping()
+        elif self.key_bindings.is_bound_to(key, "toggle-sort-order"):
+            self.toggle_sort_order()
+        elif self.key_bindings.is_bound_to(key, "search"):
+            self.start_search()
+        elif self.key_bindings.is_bound_to(key, "search-clear"):
+            self.clear_search_term()
 
-        # Editing
-        elif self.key_bindings.is_bound_to(key, "new"): self.add_new_task()
-        elif self.key_bindings.is_bound_to(key, "edit"): self.edit_task()
-        elif self.key_bindings.is_bound_to(key, "toggle-done"): self.toggle_done(focus)
-        elif self.key_bindings.is_bound_to(key, "delete"): self.delete_task(focus)
-        elif self.key_bindings.is_bound_to(key, "priority-higher"): self.adjust_priority(focus, 1)
-        elif self.key_bindings.is_bound_to(key, "priority-lower"): self.adjust_priority(focus, -1)
-        elif self.key_bindings.is_bound_to(key, "add-due"): self.change_due(focus, True)
-        elif self.key_bindings.is_bound_to(key, "subtract-due"): self.change_due(focus, False)
+            # Editing
+        elif self.key_bindings.is_bound_to(key, "new"):
+            self.add_new_task()
+        elif self.key_bindings.is_bound_to(key, "edit"):
+            self.edit_task()
+        elif self.key_bindings.is_bound_to(key, "toggle-done"):
+            self.toggle_done(focus)
+        elif self.key_bindings.is_bound_to(key, "delete"):
+            self.delete_task(focus)
+        elif self.key_bindings.is_bound_to(key, "priority-higher"):
+            self.adjust_priority(focus, 1)
+        elif self.key_bindings.is_bound_to(key, "priority-lower"):
+            self.adjust_priority(focus, -1)
+        elif self.key_bindings.is_bound_to(key, "add-due"):
+            self.change_due(focus, True)
+        elif self.key_bindings.is_bound_to(key, "subtract-due"):
+            self.change_due(focus, False)
 
-        elif self.key_bindings.is_bound_to(key, "archive"): self.archive_tasks()
-        elif self.key_bindings.is_bound_to(key, "undo-archive"): self.archive_undo()
-        elif self.key_bindings.is_bound_to(key, "save"): self.save_tasklist()
-        elif self.key_bindings.is_bound_to(key, "reload"): self.reload_tasklist_from_file()
+        elif self.key_bindings.is_bound_to(key, "archive"):
+            self.archive_tasks()
+        elif self.key_bindings.is_bound_to(key, "undo-archive"):
+            self.archive_undo()
+        elif self.key_bindings.is_bound_to(key, "save"):
+            self.save_tasklist()
+        elif self.key_bindings.is_bound_to(key, "reload"):
+            self.reload_tasklist_from_file()
 
     def main(self, enable_word_wrap=False):
 
@@ -363,7 +454,7 @@ class MainUI:
         pipe = self.loop.watch_pipe(self.file_updated)
 
         def piper():
-            os.write(pipe, b'updated')  # trigger file_updated
+            os.write(pipe, b"updated")  # trigger file_updated
 
         self.tasklist.watch(piper)
         self.loop.run()
