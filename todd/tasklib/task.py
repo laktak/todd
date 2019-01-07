@@ -15,14 +15,14 @@ class Task:
     - @CONTEXT          contexts
     - KEY:VALUE         special key-value tag
 
-    Know key-value tags are
+    Known key-value tags are
     - due:2000-01-01    due dates
     - rec:1y            recurring task
     """
 
     _priority_regex = re.compile(r"\(([A-Z])\) ")
     _context_regex = re.compile(r"(?:^|\s+)(@\S+)")
-    _project_regex = re.compile(r"(?:^|\s+)(\+\S+)")
+    _tag_regex = re.compile(r"(?:^|\s+)(\+\S+)")
     _done_regex = re.compile(r"^x (\d\d\d\d-\d\d-\d\d) ")
     _deleted_regex = re.compile(r"\s*del:(\S+)\s*")
 
@@ -47,7 +47,7 @@ class Task:
         self.raw = text.strip()
         self.priority = Task.scan_priority(self.raw)
         self.contexts = Task.scan_contexts(self.raw)
-        self.projects = Task.scan_projects(self.raw)
+        self.tags = Task.scan_tags(self.raw)
         self.done_date = Task.scan_done_date(self.raw)
         self.creation_date = Task.scan_creation_date(self.raw)
         self.due_date = Task.scan_due_date(self.raw)
@@ -58,8 +58,8 @@ class Task:
         return sorted(Task._context_regex.findall(text))
 
     @staticmethod
-    def scan_projects(text):
-        return sorted(Task._project_regex.findall(text))
+    def scan_tags(text):
+        return sorted(Task._tag_regex.findall(text))
 
     @staticmethod
     def scan_creation_date(text):
@@ -95,7 +95,7 @@ class Task:
                 "done_date": self.done_date,
                 "creation_date": self.creation_date,
                 "contexts": self.contexts,
-                "projects": self.projects,
+                "tags": self.tags,
                 "due_date": self.due_date,
                 "rec_int": self.rec_int,
             }

@@ -76,7 +76,7 @@ class TaskItem(urwid.WidgetWrap):
     def completions(self, text, completion_data={}):
         space = text.rfind(" ")
         start = text[space + 1 :]
-        words = self.parent_ui.tasklist.all_contexts() + self.parent_ui.tasklist.all_projects()
+        words = self.parent_ui.tasklist.all_contexts() + self.parent_ui.tasklist.all_tags()
         try:
             start_idx = words.index(completion_data["last_word"]) + 1
             if start_idx == len(words):

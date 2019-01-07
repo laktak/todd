@@ -6,14 +6,14 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4).pprint
 
-TODO_COWS = "Buy some cows +project-x @farm"
+TODO_COWS = "Buy some cows +tag-x @farm"
 TODO_FLUX_PRIO = "(A)"
 TODO_FLUX_TEXT = "Build a flux capacitor +future @weekend"
 TODO_FLUX = TODO_FLUX_PRIO + " " + TODO_FLUX_TEXT
 TODO_TRASH_PRIO = "(F)"
 TODO_TRASH_TEXT = "Take out the trash @home due:2018-02-21"
 TODO_TRASH = TODO_TRASH_PRIO + " 2000-01-01 " + TODO_TRASH_TEXT
-TODO_DONE = "x 1999-01-07 Book a ticket to mars +project-x +future"
+TODO_DONE = "x 1999-01-07 Book a ticket to mars +tag-x +future"
 TODO_PLAN_TEXT = "Plan our summer vacation +family @weekend"
 TODO_PLAN = "2001-02-03 " + TODO_PLAN_TEXT
 
@@ -37,19 +37,19 @@ def test_tasklist_parse_entries(tasklist):
     task = tasklist.get_items()[0]
     assert task.raw == TODO_COWS
     assert task.contexts == ["@farm"]
-    assert task.projects == ["+project-x"]
+    assert task.tags == ["+tag-x"]
     assert task.priority == ""
 
     task = tasklist.get_items()[1]
     assert task.raw == TODO_FLUX
     assert task.contexts == ["@weekend"]
-    assert task.projects == ["+future"]
+    assert task.tags == ["+future"]
     assert task.priority == "A"
 
     task = tasklist.get_items()[2]
     assert task.raw == TODO_TRASH
     assert task.contexts == ["@home"]
-    assert task.projects == []
+    assert task.tags == []
     assert task.due_date == "2018-02-21"
     assert task.creation_date == "2000-01-01"
     assert task.priority == "F"
@@ -57,14 +57,14 @@ def test_tasklist_parse_entries(tasklist):
     task = tasklist.get_items()[3]
     assert task.raw == TODO_DONE
     assert task.contexts == []
-    assert task.projects == ["+future", "+project-x"]
+    assert task.tags == ["+future", "+tag-x"]
     assert task.done_date == "1999-01-07"
     assert task.priority == ""
 
     task = tasklist.get_items()[4]
     assert task.raw == TODO_PLAN
     assert task.contexts == ["@weekend"]
-    assert task.projects == ["+family"]
+    assert task.tags == ["+family"]
     assert task.priority == ""
 
 
@@ -75,11 +75,11 @@ def test_tasklist_iterable(tasklist):
         assert task.raw != ""
 
 
-def test_context_project_regex(tasklist):
+def test_context_tag_regex(tasklist):
     tasklist.set_text_items(
         [
             TODO_COWS + " foo@email.com @email",
-            TODO_FLUX + " NotA+Project +project-y",
+            TODO_FLUX + " NotA+tag +tag-y",
             TODO_TRASH,
             TODO_DONE,
             TODO_PLAN,
@@ -87,18 +87,18 @@ def test_context_project_regex(tasklist):
     )
     task = tasklist[0]
     assert task.contexts == ["@email", "@farm"]
-    assert task.projects == ["+project-x"]
+    assert task.tags == ["+tag-x"]
     task = tasklist[1]
     assert task.contexts == ["@weekend"]
-    assert task.projects == ["+future", "+project-y"]
+    assert task.tags == ["+future", "+tag-y"]
 
 
 def test_tasklist_all_contexts(tasklist):
     assert ["@farm", "@home", "@weekend"] == tasklist.all_contexts()
 
 
-def test_tasklist_all_projects(tasklist):
-    assert ["+family", "+future", "+project-x"] == tasklist.all_projects()
+def test_tasklist_all_tags(tasklist):
+    assert ["+family", "+future", "+tag-x"] == tasklist.all_tags()
 
 
 def test_tasklist_done_date(tasklist):

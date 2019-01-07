@@ -144,8 +144,8 @@ class Tasklist:
     def all_contexts(self):
         return sorted(set([context for task in self._items for context in task.contexts]))
 
-    def all_projects(self):
-        return sorted(set([project for task in self._items for project in task.projects]))
+    def all_tags(self):
+        return sorted(set([tag for task in self._items for tag in task.tags]))
 
     def get_items(self):
         return self._items
