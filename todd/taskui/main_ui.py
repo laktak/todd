@@ -252,9 +252,10 @@ class MainUI:
         self.edit_task(normal_mode=False)
 
     def edit_task(self, normal_mode=True):
-        self.update_footer("edit-help")
         focus, _ = self.listbox.get_focus()
-        focus.edit_item(normal_mode)
+        if focus:
+            self.update_footer("edit-help")
+            focus.edit_item(normal_mode)
 
     def task_changed(self):
         # finished editing
@@ -423,17 +424,23 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "edit"):
             self.edit_task()
         elif self.key_bindings.is_bound_to(key, "toggle-done"):
-            self.toggle_done(focus)
+            if focus:
+                self.toggle_done(focus)
         elif self.key_bindings.is_bound_to(key, "delete"):
-            self.delete_task(focus)
+            if focus:
+                self.delete_task(focus)
         elif self.key_bindings.is_bound_to(key, "priority-higher"):
-            self.adjust_priority(focus, 1)
+            if focus:
+                self.adjust_priority(focus, 1)
         elif self.key_bindings.is_bound_to(key, "priority-lower"):
-            self.adjust_priority(focus, -1)
+            if focus:
+                self.adjust_priority(focus, -1)
         elif self.key_bindings.is_bound_to(key, "add-due"):
-            self.change_due(focus, True)
+            if focus:
+                self.change_due(focus, True)
         elif self.key_bindings.is_bound_to(key, "subtract-due"):
-            self.change_due(focus, False)
+            if focus:
+                self.change_due(focus, False)
 
         elif self.key_bindings.is_bound_to(key, "archive"):
             self.archive_tasks()
