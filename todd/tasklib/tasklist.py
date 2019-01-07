@@ -168,10 +168,23 @@ class Tasklist:
             else:
                 return task.raw
 
+        def created(task):
+            res = task.creation_date
+            res += task.raw
+            if not res:
+                res = "z"
+            if task.is_done() or task.is_deleted():
+                res = "z" + res
+            return res
+
         if sort_by == "due":
-            return sorted(self._items, key=due_prio)
+            key = due_prio
         elif sort_by == "prio":
-            return sorted(self._items, key=prio)
+            key = prio
+        elif sort_by == "created":
+            key = created
+
+        return sorted(self._items, key=key)
 
     @staticmethod
     def filter_due(items, date):

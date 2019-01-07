@@ -9,7 +9,7 @@ class MainUI:
     def __init__(self, tasklist, key_bindings, colorscheme):
         self.view_days = 7
         self.wrapping = collections.deque(["clip", "space"])
-        self.sort_order = collections.deque(["Due", "Prio"])
+        self.sort_order = collections.deque(["Due", "Prio", "Created"])
 
         self.tasklist = tasklist
         self.items = None
