@@ -1,8 +1,9 @@
-import os
-import urwid
 import collections
-from todd.tasklib import Tasklist, Util
+import os
+
+import urwid
 from todd import taskui
+from todd.tasklib import Tasklist, Util
 
 
 class MainUI:
@@ -278,8 +279,6 @@ class MainUI:
         t = focus.task
         if t.is_done():
             t.set_done(False)
-            self.tasklist.save()
-            self.fill_listbox()
         else:
             last = t.raw
             rec = t.set_done()
@@ -290,7 +289,9 @@ class MainUI:
                 t.set_creation_date(Util.get_today())
             else:
                 self.listbox.move_offs(1)
-            self.archive_tasks()  # save & update list
+
+        self.tasklist.save()
+        self.fill_listbox()
 
     def delete_task(self, focus):
         t = focus.task
