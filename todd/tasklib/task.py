@@ -1,5 +1,6 @@
-import re
 import datetime
+import re
+
 from todd.tasklib import Util
 
 
@@ -27,7 +28,9 @@ class Task:
     _deleted_regex = re.compile(r"\s*del:(\S+)\s*")
 
     _creation_date_prefix = r"^" r"(x \d\d\d\d-\d\d-\d\d\s+)?" r"(\(\w\)\s+)?"
-    _creation_date_regex = re.compile(_creation_date_prefix + r"(\d\d\d\d-\d\d-\d\d)\s*")
+    _creation_date_regex = re.compile(
+        _creation_date_prefix + r"(\d\d\d\d-\d\d-\d\d)\s*"
+    )
     _creation_date_regex2 = re.compile(_creation_date_prefix)
 
     _due_date_regex = re.compile(r"\s*due:(\d\d\d\d-\d\d-\d\d)\s*")
@@ -109,9 +112,15 @@ class Task:
 
         # Task
         if re.search(self._priority_regex, self.raw):
-            self.raw = re.sub(self._priority_regex, "{}".format(new_priority), self.raw)
+            self.raw = re.sub(
+                self._priority_regex, "{}".format(new_priority), self.raw
+            )
         elif re.search(r"^x \d{4}-\d{2}-\d{2}", self.raw):
-            self.raw = re.sub(r"^(x \d{4}-\d{2}-\d{2}) ", r"\1 {}".format(new_priority), self.raw)
+            self.raw = re.sub(
+                r"^(x \d{4}-\d{2}-\d{2}) ",
+                r"\1 {}".format(new_priority),
+                self.raw,
+            )
         else:
             self.raw = "{}{}".format(new_priority, self.raw)
         self.update(self.raw)
@@ -127,7 +136,9 @@ class Task:
             today = datetime.date.today()
             self.update("x " + today.isoformat() + " " + self.raw)
             if self.rec_int:
-                (prefix, value, itype) = Task._rec_int_parts_regex.match(self.rec_int).groups()
+                (prefix, value, itype) = Task._rec_int_parts_regex.match(
+                    self.rec_int
+                ).groups()
                 value = int(value)
                 date = self.get_due() if prefix == "+" else today
                 return Util.date_add_interval(date, itype, value)
@@ -167,7 +178,9 @@ class Task:
         return self.due_date is not None
 
     def is_due(self, due_date):
-        return not self.is_done() and self.due_date and self.due_date <= due_date
+        return (
+            not self.is_done() and self.due_date and self.due_date <= due_date
+        )
 
     def set_due(self, date):
         if type(date) is datetime.datetime:
@@ -181,7 +194,9 @@ class Task:
 
     def get_due(self):
         return (
-            datetime.datetime.strptime(self.due_date, "%Y-%m-%d").date() if self.due_date else None
+            datetime.datetime.strptime(self.due_date, "%Y-%m-%d").date()
+            if self.due_date
+            else None
         )
 
     def update_relative_due_date(self):
@@ -190,16 +205,22 @@ class Task:
             if match:
                 date = Util.mod_date_by(Util.get_today(), match.group(1))
                 if date:
-                    self.raw = re.sub(Task._any_due_date_regex, " ", self.raw).strip()
+                    self.raw = re.sub(
+                        Task._any_due_date_regex, " ", self.raw
+                    ).strip()
                     self.set_due(date)
 
     def set_creation_date(self, date):
         if type(date) is datetime.datetime:
             date = date.date()
         regex = (
-            Task._creation_date_regex if self.creation_date != "" else Task._creation_date_regex2
+            Task._creation_date_regex
+            if self.creation_date != ""
+            else Task._creation_date_regex2
         )
-        self.raw = re.sub(regex, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw)
+        self.raw = re.sub(
+            regex, r"\g<1>\g<2>" + date.isoformat() + " ", self.raw
+        )
         self.update(self.raw)
 
     def get_desc(self):
@@ -210,5 +231,6 @@ class Task:
         res = re.sub(Task._due_date_regex, PLHR, res)
         res = re.sub(Task._rec_int_regex, PLHR, res)
         res = re.sub(Task._context_regex, PLHR, res)
+        res = re.sub(Task._tag_regex, PLHR, res)
         res = re.sub(Task._plhr_regex, PLHR, res)
         return res.strip(PLHR)
