@@ -111,3 +111,15 @@ For a list of the default key bindings run:
 ```
 todd --show-default-bindings
 ```
+
+## Contributing
+
+Bug reports and fixes are always welcome!
+
+Before submitting pull requests, run [black](https://github.com/ambv/black) and tests with:
+
+```
+$ black .
+$ python setup.py test
+```
+

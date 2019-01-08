@@ -95,7 +95,7 @@ class MainUI:
                 urwid.SimpleListWalker(
                     [urwid.Divider()]
                     + [urwid.Text("Switch Context")]
-                    + [urwid.Divider(u"─")]
+                    + [urwid.Divider("─")]
                     + [
                         urwid.AttrMap(
                             taskui.MenuItem("(all)", self.toggle_context_panel),
