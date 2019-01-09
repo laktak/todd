@@ -28,7 +28,6 @@ if sys.version_info < (3, 6):
     sys.exit("Python < 3.6 is not supported")
 
 
-
 def exit_with_error(message):
     sys.stderr.write(message.strip(" \n") + "\n")
     print(__doc__.split("\n\n")[1])
