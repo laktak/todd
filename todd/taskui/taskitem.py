@@ -4,15 +4,7 @@ from urwid_viedit import ViEdit
 
 
 class TaskItem(urwid.WidgetWrap):
-    def __init__(
-        self,
-        task,
-        key_bindings,
-        colorscheme,
-        parent_ui,
-        wrapping="clip",
-        search=None,
-    ):
+    def __init__(self, task, key_bindings, colorscheme, parent_ui, wrapping="clip", search=None):
         super(TaskItem, self).__init__("")
         self.task = task  # type Task
         self.key_bindings = key_bindings
@@ -29,9 +21,7 @@ class TaskItem(urwid.WidgetWrap):
     def update_task(self, search=None):
         t = self.task
         today = Util.get_today()
-        self.status = t.get_status(
-            today.isoformat(), Util.get_next_monday().isoformat()
-        )
+        self.status = t.get_status(today.isoformat(), Util.get_next_monday().isoformat())
 
         if search:
             show = Tasklist.get_search_highlight(search, t.raw)
@@ -60,20 +50,12 @@ class TaskItem(urwid.WidgetWrap):
             context = urwid.Text(("context", ",".join(t.contexts)))
             tag = urwid.Text(("tag", ",".join(t.tags)))
             text = urwid.Columns(
-                [
-                    ("weight", 10, main),
-                    (12, due),
-                    (12, rec),
-                    (15, tag),
-                    (15, context),
-                ],
+                [("weight", 10, main), (12, due), (12, rec), (15, tag), (15, context)],
                 dividechars=2,
             )
 
         self._w = urwid.AttrMap(
-            urwid.AttrMap(text, None, "selected"),
-            None,
-            self.colorscheme.focus_map,
+            urwid.AttrMap(text, None, "selected"), None, self.colorscheme.focus_map
         )
 
     def edit_item(self, normal_mode=True):
@@ -96,26 +78,17 @@ class TaskItem(urwid.WidgetWrap):
     def completions(self, text, completion_data={}):
         space = text.rfind(" ")
         start = text[space + 1 :]
-        words = (
-            self.parent_ui.tasklist.all_contexts()
-            + self.parent_ui.tasklist.all_tags()
-        )
+        words = self.parent_ui.tasklist.all_contexts() + self.parent_ui.tasklist.all_tags()
         try:
             start_idx = words.index(completion_data["last_word"]) + 1
             if start_idx == len(words):
                 start_idx = 0
         except (KeyError, ValueError):
             start_idx = 0
-        for idx in list(range(start_idx, len(words))) + list(
-            range(0, start_idx)
-        ):
+        for idx in list(range(start_idx, len(words))) + list(range(0, start_idx)):
             if words[idx].lower().startswith(start.lower()):
                 completion_data["last_word"] = words[idx]
-                return (
-                    text[: space + 1]
-                    + words[idx]
-                    + (": " if space < 0 else "")
-                )
+                return text[: space + 1] + words[idx] + (": " if space < 0 else "")
         return text
 
     def end_edit(self):
