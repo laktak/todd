@@ -2,8 +2,9 @@ language: python
 python:
   - "3.6"
 install:
-  - pip install black
+  - pip install black isort
   - pip install -r requirements.txt
 script:
   - black --check .
+  - isort --recursive --check-only .
   - python setup.py test
