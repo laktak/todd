@@ -1,8 +1,9 @@
-import os
-import urwid
 import collections
-from todd.tasklib import Tasklist, Util
+import os
+
+import urwid
 from todd import taskui
+from todd.tasklib import Tasklist, Util
 
 
 class MainUI:
@@ -335,7 +336,7 @@ class MainUI:
             self.active_context = "@" + focus
             self.fill_listbox()
 
-    def fill_listbox(self, keep=None):
+    def fill_listbox(self, keep=None, use_tags=False):
         # clear
         focus, _ = self.listbox.get_focus()
         last_id = focus.task.task_id if type(focus) is taskui.TaskItem else -1
@@ -369,6 +370,7 @@ class MainUI:
                     self,
                     wrapping=self.wrapping[0],
                     search=search,
+                    use_tags=use_tags
                 )
                 for t in items
             ]
@@ -451,12 +453,12 @@ class MainUI:
         elif self.key_bindings.is_bound_to(key, "reload"):
             self.reload_tasklist_from_file()
 
-    def main(self, enable_word_wrap=False):
+    def main(self, enable_word_wrap=False, use_tags=False):
 
         if enable_word_wrap:
             self.toggle_wrapping()
 
-        self.fill_listbox()
+        self.fill_listbox(use_tags=use_tags)
 
         pipe = self.loop.watch_pipe(self.file_updated)
 
