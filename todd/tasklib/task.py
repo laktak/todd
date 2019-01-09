@@ -39,7 +39,7 @@ class Task:
     _rec_int_regex = re.compile(r"\s*rec:(\+?\d+[dwmy])\s*")
     _rec_int_parts_regex = re.compile(r"(\+)?(\d+)([dwmy])")
 
-    PLHR = u"\N{HORIZONTAL ELLIPSIS}"
+    PLHR = "\N{HORIZONTAL ELLIPSIS}"
     _plhr_regex = re.compile(PLHR + "[ " + PLHR + "]*")
 
     def __init__(self, item, task_id):
@@ -224,7 +224,7 @@ class Task:
         self.update(self.raw)
 
     def get_desc(self):
-        PLHR = u" \N{HORIZONTAL ELLIPSIS} "
+        PLHR = " \N{HORIZONTAL ELLIPSIS} "
         res = self.raw
         if self.creation_date != "":
             res = re.sub(Task._creation_date_regex, r"\1\2", res)

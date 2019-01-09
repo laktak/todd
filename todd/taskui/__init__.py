@@ -1,5 +1,3 @@
-# flake8: noqa
-
 from .colorscheme import ColorScheme
 from .components import *
 from .components import EntryWidget, MenuItem, ViColumns, ViListBox
