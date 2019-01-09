@@ -30,9 +30,7 @@ class TaskItem(urwid.WidgetWrap):
     def update_task(self, search=None, use_tags=False):
         t = self.task
         today = Util.get_today()
-        self.status = t.get_status(
-            today.isoformat(), Util.get_next_monday().isoformat()
-        )
+        self.status = t.get_status(today.isoformat(), Util.get_next_monday().isoformat())
 
         if search:
             show = Tasklist.get_search_highlight(search, t.raw)
@@ -60,20 +58,13 @@ class TaskItem(urwid.WidgetWrap):
             rec = urwid.Text(("plain", rec_text))
             context = urwid.Text(("context", ",".join(t.contexts)))
             tag = urwid.Text(("tag", ",".join(t.tags)))
-            column_definitions = [
-                ("weight", 10, main),
-                (12, due),
-                (12, rec),
-                (15, context),
-            ]
+            column_definitions = [("weight", 10, main), (12, due), (12, rec), (15, context)]
             if use_tags:
                 column_definitions.insert(3, (15, tag))
             text = urwid.Columns(column_definitions, dividechars=2)
 
         self._w = urwid.AttrMap(
-            urwid.AttrMap(text, None, "selected"),
-            None,
-            self.colorscheme.focus_map,
+            urwid.AttrMap(text, None, "selected"), None, self.colorscheme.focus_map
         )
 
     def edit_item(self, normal_mode=True):
@@ -96,26 +87,17 @@ class TaskItem(urwid.WidgetWrap):
     def completions(self, text, completion_data={}):
         space = text.rfind(" ")
         start = text[space + 1 :]
-        words = (
-            self.parent_ui.tasklist.all_contexts()
-            + self.parent_ui.tasklist.all_tags()
-        )
+        words = self.parent_ui.tasklist.all_contexts() + self.parent_ui.tasklist.all_tags()
         try:
             start_idx = words.index(completion_data["last_word"]) + 1
             if start_idx == len(words):
                 start_idx = 0
         except (KeyError, ValueError):
             start_idx = 0
-        for idx in list(range(start_idx, len(words))) + list(
-            range(0, start_idx)
-        ):
+        for idx in list(range(start_idx, len(words))) + list(range(0, start_idx)):
             if words[idx].lower().startswith(start.lower()):
                 completion_data["last_word"] = words[idx]
-                return (
-                    text[: space + 1]
-                    + words[idx]
-                    + (": " if space < 0 else "")
-                )
+                return text[: space + 1] + words[idx] + (": " if space < 0 else "")
         return text
 
     def end_edit(self):
