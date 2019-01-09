@@ -1,4 +1,5 @@
 import urwid
+
 from todd.tasklib.util import Util
 
 

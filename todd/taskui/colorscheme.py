@@ -1,5 +1,5 @@
-import os
 import configparser
+import os
 
 
 class ColorScheme:

@@ -6,14 +6,15 @@ todd
 *todd* is an interactive console TODO manager with VI key bindings.
 """
 
+import os
 import sys
+
+from setuptools import find_packages, setup
+from setuptools.command.test import test as TestCommand
 
 if sys.version_info < (3, 6):
     sys.exit("Please install with Python >= 3.6")
 
-from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
-import os
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "todd", "__init__.py")) as fd:
     version = [line.split()[-1].strip('"') for line in fd if line.startswith("version")]

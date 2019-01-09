@@ -1,8 +1,10 @@
-import os
-import urwid
 import collections
-from todd.tasklib import Tasklist, Util
+import os
+
+import urwid
+
 from todd import taskui
+from todd.tasklib import Tasklist, Util
 
 
 class MainUI:

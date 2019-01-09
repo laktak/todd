@@ -1,6 +1,7 @@
+from textwrap import dedent
+
 import urwid
 
-from textwrap import dedent
 from todd.taskui import ViListBox
 
 

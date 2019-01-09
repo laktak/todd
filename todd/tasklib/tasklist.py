@@ -1,7 +1,9 @@
 import os
 import re
+
 import watchdog.events
 import watchdog.observers
+
 from todd.tasklib import Task, Util
 
 

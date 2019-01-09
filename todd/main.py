@@ -13,18 +13,20 @@ Options:
   --show-default-bindings             Show default keybindings in config parser format
 """
 
+import configparser
+import os
 import sys
+from collections import OrderedDict
+
+from docopt import docopt
+
+import todd
+from todd.tasklib import Tasklist
+from todd.taskui import ColorScheme, KeyBindings, MainUI
 
 if sys.version_info < (3, 6):
     sys.exit("Python < 3.6 is not supported")
 
-import os
-from collections import OrderedDict
-from docopt import docopt
-import todd
-from todd.tasklib import Tasklist
-from todd.taskui import MainUI, ColorScheme, KeyBindings
-import configparser
 
 
 def exit_with_error(message):

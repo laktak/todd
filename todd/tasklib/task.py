@@ -1,5 +1,6 @@
-import re
 import datetime
+import re
+
 from todd.tasklib import Util
 
 

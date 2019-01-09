@@ -1,5 +1,5 @@
-import re
 import datetime
+import re
 
 
 def _get_today():

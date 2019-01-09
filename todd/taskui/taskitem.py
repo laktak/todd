@@ -1,6 +1,7 @@
 import urwid
-from todd.tasklib import Tasklist, Util
 from urwid_viedit import ViEdit
+
+from todd.tasklib import Tasklist, Util
 
 
 class TaskItem(urwid.WidgetWrap):

@@ -1,8 +1,9 @@
-import pytest
 import datetime
-from todd.tasklib import *
-
 import pprint
+
+import pytest
+
+from todd.tasklib import *
 
 pp = pprint.PrettyPrinter(indent=4).pprint
 
