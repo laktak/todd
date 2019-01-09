@@ -370,7 +370,7 @@ class MainUI:
                     self,
                     wrapping=self.wrapping[0],
                     search=search,
-                    use_tags=use_tags
+                    use_tags=use_tags,
                 )
                 for t in items
             ]
