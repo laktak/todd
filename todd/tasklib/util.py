@@ -71,7 +71,7 @@ class Util:
                 return Util._get_next_weekday(idx, today=today)
         if text[:3] == "tod":
             return Util.get_today()  # today
-        elif text == "to":
+        elif text2 == "to":
             return Util.get_today(1)  # tomorrow
         elif text2 == "ye":
             return Util.get_today(-1)  # yesterday
@@ -83,15 +83,18 @@ class Util:
 
     @staticmethod
     def mod_date_by(date, text, *, today=_get_today()):
-        # try relative date
-        date2 = Util._parse_relative_date(text, today=today)
-        if date2:
-            return date2
-        # try interval
-        (prefix, value, itype) = Util._interval_parts_regex.match(text).groups()
-        value = int(value)
-        mod = -1 if prefix == "-" else 1
-        return Util.date_add_interval(date, itype, value * mod)
+        try:
+            # try relative date
+            date2 = Util._parse_relative_date(text, today=today)
+            if date2:
+                return date2
+            # try interval
+            (prefix, value, itype) = Util._interval_parts_regex.match(text).groups()
+            value = int(value)
+            mod = -1 if prefix == "-" else 1
+            return Util.date_add_interval(date, itype, value * mod)
+        except:
+            return today
 
     @staticmethod
     def define_keys(command_map, key_bindings, mappings):
