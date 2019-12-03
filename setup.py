@@ -69,8 +69,8 @@ setup(
     install_requires=[
         "setuptools",
         "docopt>=0.6.2",
-        "urwid>=1.3.0",
-        "urwid_viedit>=0.1.0",
+        "urwid>=2.0.1",
+        "urwid_viedit>=0.1.2",
         "watchdog>=0.8.3",
     ],
     tests_require=["pytest"],
