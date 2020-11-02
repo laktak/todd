@@ -1,0 +1,16 @@
+
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: psf/black@stable
+      - name: run tests
+        run: |
+          pip install -r requirements.txt
+          python setup.py test
